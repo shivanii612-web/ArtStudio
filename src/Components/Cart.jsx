@@ -1,42 +1,72 @@
 import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  removeItem,
+  increaseQuantity,
+  decreaseQuantity,
+  clearItem,
+} from "../features/cart/Cartslice";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-const Cart = ({ cart, setCart }) => {
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+const Cart = () => {
+  const cart = useSelector((state) => state.cart.items) || [];
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const cartCount = cart.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
   const getPrice = (price) => {
     return Number(String(price).replace("₹", ""));
   };
 
   const subtotal = cart.reduce(
-    (total, item) => total + getPrice(item.price) * item.quantity,
+    (total, item) =>
+      total + getPrice(item.price) * item.quantity,
     0
   );
 
   const shipping = cart.length > 0 ? 50 : 0;
   const total = subtotal + shipping;
 
-  const increaseItem = (id) => {
-    setCart((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
+  const handleIncrease = async (item) => {
+    try {
+      const response = await axios.post(`http://localhost:3000/products/reserve/${item._id}`, { quantity: 1 });
+      if (response.data.success) {
+        dispatch(increaseQuantity(item._id));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to increase quantity");
+    }
   };
 
-  const decreaseItem = (id) => {
-    setCart((prev) =>
-      prev
-        .map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
+  const handleDecrease = async (item) => {
+    try {
+      const response = await axios.post(`http://localhost:3000/products/release/${item._id}`, { quantity: 1 });
+      if (response.data.success) {
+        dispatch(decreaseQuantity(item._id));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to decrease quantity");
+    }
   };
 
-  const removeItem = (id) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+  const handleRemove = async (item) => {
+    try {
+      const response = await axios.post(`http://localhost:3000/products/release/${item._id}`, { quantity: item.quantity });
+      if (response.data.success) {
+        dispatch(clearItem(item._id));
+        toast.success("Item removed from cart");
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to remove item");
+    }
   };
 
   return (
@@ -48,7 +78,9 @@ const Cart = ({ cart, setCart }) => {
       </h1>
 
       {cart.length === 0 ? (
-        <p className="text-center text-xl pb-10">Your cart is empty.</p>
+        <p className="text-center text-xl pb-10">
+          Your cart is empty.
+        </p>
       ) : (
         <div className="flex gap-6 px-10 pb-10 items-start">
           <div className="w-[68%] bg-white rounded-xl shadow-md p-5">
@@ -61,27 +93,31 @@ const Cart = ({ cart, setCart }) => {
             </div>
 
             {cart.map((item) => {
-              const itemSubtotal = getPrice(item.price) * item.quantity;
+              const itemSubtotal =
+                getPrice(item.price) * item.quantity;
 
               return (
                 <div
-                  key={item.id}
+                  key={item._id}
                   className="grid grid-cols-5 items-center text-center border-b py-4"
                 >
                   <div className="flex items-center gap-4 text-left">
                     <img
                       src={item.image}
-                      alt={item.name}
+                      alt={item.title}
                       className="w-24 h-24 object-cover rounded-lg"
                     />
-                    <h2 className="font-semibold">{item.name}</h2>
+
+                    <h2 className="font-semibold">
+                      {item.title}
+                    </h2>
                   </div>
 
-                  <p>{item.price}</p>
+                  <p>₹{item.price}</p>
 
                   <div className="flex justify-center items-center gap-3">
                     <button
-                      onClick={() => decreaseItem(item.id)}
+                      onClick={() => handleDecrease(item)}
                       className="bg-gray-200 px-3 py-1 rounded font-bold"
                     >
                       -
@@ -90,7 +126,7 @@ const Cart = ({ cart, setCart }) => {
                     <span>{item.quantity}</span>
 
                     <button
-                      onClick={() => increaseItem(item.id)}
+                      onClick={() => handleIncrease(item)}
                       className="bg-gray-200 px-3 py-1 rounded font-bold"
                     >
                       +
@@ -100,8 +136,8 @@ const Cart = ({ cart, setCart }) => {
                   <p>₹{itemSubtotal}</p>
 
                   <button
-                    onClick={() => removeItem(item.id)}
-                    className="bg-red-500 text-white px-3 py-2 rounded-lg font-semibold transition-all duration-300 hover:bg-red-700 hover:scale-105 hover:shadow-lg"
+                    onClick={() => handleRemove(item)}
+                    className="bg-red-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-red-700"
                   >
                     Remove
                   </button>
@@ -111,7 +147,9 @@ const Cart = ({ cart, setCart }) => {
           </div>
 
           <div className="w-[32%] bg-white rounded-xl shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+            <h2 className="text-2xl font-bold mb-6">
+              Order Summary
+            </h2>
 
             <div className="flex justify-between mb-4 text-lg">
               <span>Items</span>
@@ -135,8 +173,11 @@ const Cart = ({ cart, setCart }) => {
               <span>₹{total}</span>
             </div>
 
-            <button className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-bold transition-all duration-300 hover:bg-green-700 hover:scale-105 hover:shadow-xl">
-              Buy Now
+            <button
+             onClick={() => navigate("/checkout")}
+             className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-bold hover:bg-green-700"
+            >
+             Checkout
             </button>
           </div>
         </div>
