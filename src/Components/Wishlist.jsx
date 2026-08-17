@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addtoCart } from "../features/cart/Cartslice";
-import { removeFromWishlist } from "../features/wishlist/WishlistSlice";
+import { removeFromWishlist } from "../features/wishlist/Wishlistslice";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { useNavigate } from "react-router-dom";
