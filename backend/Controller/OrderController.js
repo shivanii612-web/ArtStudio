@@ -1,5 +1,5 @@
 const Order = require("../Model/Order");
-const Product = require("../Model/ProductModel");
+const Product = require("../Model/Productmodel");
 const { redisClient } = require("../Config/redis");
 
 
