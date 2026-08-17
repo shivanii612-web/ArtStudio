@@ -9,7 +9,7 @@ import SignUp from "./Components/login/Signup";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import axios from "axios";
-import { loginSuccess, logout } from "./features/user/UserSlice";
+import { loginSuccess, logout } from "./features/user/userSlice";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminRoute from "./Components/AdminRoute";
 import AdminProducts from "./Components/AdminProducts";
@@ -34,7 +34,7 @@ function App() {
       }
 
       try {
-        const res = await axios.get("http://localhost:3000/me", {
+        const res = await axios.get("https://art-studio-mh42.onrender.com/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -63,9 +63,8 @@ function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
 
-          <Route path="/" element={<Product />} />
-
           <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Product />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/checkout" element={<Checkout />} />

@@ -116,7 +116,7 @@ const cartCount=cart.reduce((total,item)=>total+item.quantity,0);
 useEffect(()=>{
 const fetchProducts=async()=>{
 try{
-const resp=await axios.get("http://localhost:3000/AllProducts");
+const resp=await axios.get("https://art-studio-mh42.onrender.com/AllProducts");
 setProducts(resp.data.data || []);
 }catch(err){
 console.log("Product Fetch Error:",err);
@@ -127,7 +127,7 @@ fetchProducts();
 
   const handleAddToCart = async (prod) => {
     try {
-      const response = await axios.post(`http://localhost:3000/products/reserve/${prod._id}`, { quantity: 1 });
+      const response = await axios.post(`https://art-studio-mh42.onrender.com/products/reserve/${prod._id}`, { quantity: 1 });
       if (response.data.success) {
         dispatch(addtoCart(prod));
         setProducts((prev) =>

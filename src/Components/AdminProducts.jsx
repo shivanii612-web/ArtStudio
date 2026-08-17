@@ -26,7 +26,7 @@ const AdminProducts = () => {
     try {
 
       const res = await axios.get(
-        "http://localhost:3000/AllProducts"
+        "https://art-studio-mh42.onrender.com/AllProducts"
       );
 
       setProducts(res.data.data || []);
@@ -77,7 +77,7 @@ const AdminProducts = () => {
 
 
       await axios.post(
-        "http://localhost:3000/create",
+        "https://art-studio-mh42.onrender.com/create",
         {
           title,
           description,
@@ -141,7 +141,7 @@ const AdminProducts = () => {
 
       await axios.put(
 
-        `http://localhost:3000/updateproduct/${editProduct._id}`,
+        `https://art-studio-mh42.onrender.com/updateproduct/${editProduct._id}`,
 
         {
           title:editProduct.title,
@@ -200,7 +200,7 @@ const AdminProducts = () => {
 
       await axios.delete(
 
-        `http://localhost:3000/delete/${id}`
+        `https://art-studio-mh42.onrender.com/delete/${id}`
 
       );
 

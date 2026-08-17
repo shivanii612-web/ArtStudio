@@ -70,7 +70,7 @@ const Checkout = () => {
 
 
     const response = await axios.post(
-      "http://localhost:3000/orders/place",
+      "https://art-studio-mh42.onrender.com/orders/place",
       orderData
     );
 

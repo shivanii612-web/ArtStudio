@@ -23,7 +23,7 @@ const SignUp = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/register",
+        "https://art-studio-mh42.onrender.com/register",
         {
           name,
           email,

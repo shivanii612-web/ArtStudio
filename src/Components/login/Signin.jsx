@@ -24,7 +24,7 @@ const SignIn = () => {
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/google-login",
+        "https://art-studio-mh42.onrender.com/google-login",
         {
           credential: credentialResponse.credential,
         }
@@ -82,7 +82,7 @@ const SignIn = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/login",
+        "https://art-studio-mh42.onrender.com/login",
         {
           email,
           password,

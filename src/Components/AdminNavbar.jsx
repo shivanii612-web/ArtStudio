@@ -1,7 +1,9 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { logout } from "../features/user/UserSlice";
+import { logout } from "../features/user/userSlice";
+import { clearCart } from "../features/cart/Cartslice";
+import { clearWishlist } from "../features/wishlist/Wishlistslice";
 
 const AdminNavbar = () => {
   const navigate = useNavigate();
@@ -12,10 +14,9 @@ const AdminNavbar = () => {
   const isOrders = location.pathname === "/admin/orders";
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
     dispatch(logout());
+    dispatch(clearCart());
+    dispatch(clearWishlist());
 
     navigate("/signin");
   };

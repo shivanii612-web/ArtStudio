@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../features/user/UserSlice";
+import { logout } from "../features/user/userSlice";
 import { toast } from "react-toastify";
+import { clearCart } from "../features/cart/Cartslice";
+import { clearWishlist } from "../features/wishlist/Wishlistslice";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -25,6 +27,8 @@ const Navbar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(clearCart());
+    dispatch(clearWishlist());
 
     toast.success("Logout Successful!");
 

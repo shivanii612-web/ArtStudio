@@ -37,7 +37,7 @@ const Cart = () => {
 
   const handleIncrease = async (item) => {
     try {
-      const response = await axios.post(`http://localhost:3000/products/reserve/${item._id}`, { quantity: 1 });
+      const response = await axios.post(`https://art-studio-mh42.onrender.com/products/reserve/${item._id}`, { quantity: 1 });
       if (response.data.success) {
         dispatch(increaseQuantity(item._id));
       }
@@ -48,7 +48,7 @@ const Cart = () => {
 
   const handleDecrease = async (item) => {
     try {
-      const response = await axios.post(`http://localhost:3000/products/release/${item._id}`, { quantity: 1 });
+      const response = await axios.post(`https://art-studio-mh42.onrender.com/products/release/${item._id}`, { quantity: 1 });
       if (response.data.success) {
         dispatch(decreaseQuantity(item._id));
       }
@@ -59,7 +59,7 @@ const Cart = () => {
 
   const handleRemove = async (item) => {
     try {
-      const response = await axios.post(`http://localhost:3000/products/release/${item._id}`, { quantity: item.quantity });
+      const response = await axios.post(`https://art-studio-mh42.onrender.com/products/release/${item._id}`, { quantity: item.quantity });
       if (response.data.success) {
         dispatch(clearItem(item._id));
         toast.success("Item removed from cart");

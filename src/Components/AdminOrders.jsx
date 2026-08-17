@@ -10,7 +10,7 @@ const AdminOrders = () => {
   const fetchOrders = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:3000/orders/all"
+        "https://art-studio-mh42.onrender.com/orders/all"
       );
 
       setOrders(res.data.orders);
@@ -30,7 +30,7 @@ const AdminOrders = () => {
     try {
 
       await axios.put(
-        `http://localhost:3000/orders/status/${id}`,
+        `https://art-studio-mh42.onrender.com/orders/status/${id}`,
         { status }
       );
 

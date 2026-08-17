@@ -15,7 +15,7 @@ const Orders = () => {
       setLoading(true);
 
       const res = await axios.get(
-        `http://localhost:3000/orders/user/${user._id}`
+        `https://art-studio-mh42.onrender.com/orders/user/${user._id}`
       );
 
       setOrders(res.data.orders);

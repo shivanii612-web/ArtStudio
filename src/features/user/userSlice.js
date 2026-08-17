@@ -36,6 +36,8 @@ const userSlice = createSlice({
       // Remove from localStorage
       localStorage.removeItem("user");
       localStorage.removeItem("token");
+      localStorage.removeItem("cart");
+      localStorage.removeItem("wishlist");
     },
   },
 });
