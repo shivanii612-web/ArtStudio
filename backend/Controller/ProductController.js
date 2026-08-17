@@ -1,4 +1,4 @@
-const Product = require("../Model/ProductModel");
+const Product = require("../Model/Productmodel");
 const { redisClient } = require("../Config/redis");
 // product controller
 
