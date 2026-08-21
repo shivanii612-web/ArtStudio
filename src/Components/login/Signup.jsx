@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import bgImage from "../../assets/login-bg.png";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
@@ -11,7 +11,10 @@ import { toast } from "react-toastify";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  const returnTo = new URLSearchParams(location.search).get("returnTo") || "/";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,8 +25,9 @@ const SignUp = () => {
     e.preventDefault();
 
     try {
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       const response = await axios.post(
-        "https://art-studio-mh42.onrender.com/register",
+        `${BACKEND_URL}/register`,
         {
           name,
           email,
@@ -31,30 +35,13 @@ const SignUp = () => {
         }
       );
 
-      if (response.data.token) {
-
-        dispatch(
-          loginSuccess({
-            user: response.data.user,
-            token: response.data.token,
-          })
-        );
-
-        localStorage.setItem(
-          "token",
-          response.data.token
-        );
-
-        localStorage.setItem(
-          "user",
-          JSON.stringify(response.data.user)
-        );
-      }
-
-      toast.success("Account Created Successfully!");
+      sessionStorage.setItem("signupEmail", email);
+      toast.success(response.data.message || "Verification code sent to your email.");
 
       setTimeout(() => {
-        navigate("/");
+        navigate(`/verify-email?email=${encodeURIComponent(email)}&returnTo=${encodeURIComponent(returnTo)}`, {
+          state: { email }
+        });
       }, 1500);
 
     } catch (error) {

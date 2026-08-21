@@ -6,10 +6,13 @@ import Wishlist from "./Components/Wishlist";
 
 import SignIn from "./Components/login/Signin";
 import SignUp from "./Components/login/Signup";
+import VerifyEmail from "./Components/login/VerifyEmail";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import axios from "axios";
 import { loginSuccess, logout } from "./features/user/userSlice";
+import { setUserCart, logoutCart } from "./features/cart/Cartslice";
+import { setUserWishlist, logoutWishlist } from "./features/wishlist/Wishlistslice";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminRoute from "./Components/AdminRoute";
 import AdminProducts from "./Components/AdminProducts";
@@ -34,7 +37,8 @@ function App() {
       }
 
       try {
-        const res = await axios.get("https://art-studio-mh42.onrender.com/", {
+        const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
+        const res = await axios.get(`${BACKEND_URL}/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -47,10 +51,14 @@ function App() {
               token: token,
             }),
           );
+          dispatch(setUserCart(res.data.user._id));
+          dispatch(setUserWishlist(res.data.user._id));
         }
       } catch (err) {
         console.log(err);
         dispatch(logout());
+        dispatch(logoutCart());
+        dispatch(logoutWishlist());
       }
     };
 
@@ -62,9 +70,11 @@ function App() {
         <Routes>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+
+          <Route path="/" element={<Product />} />
 
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Product />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/checkout" element={<Checkout />} />

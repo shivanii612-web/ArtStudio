@@ -1,5 +1,6 @@
 import React,{useEffect,useState} from "react";
 import {useSelector,useDispatch} from "react-redux";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import {addtoCart} from "../features/cart/Cartslice";
 import {addToWishlist,removeFromWishlist} from "../features/wishlist/Wishlistslice";
 import Navbar from "./Navbar";
@@ -105,9 +106,16 @@ const Product=()=>{
 
 const [poppingId,setPoppingId]=useState(null);
 const [products,setProducts]=useState([]);
+const [loading,setLoading]=useState(true);
+
+const navigate = useNavigate();
+const location = useLocation();
+const [searchParams] = useSearchParams();
+const searchQuery = searchParams.get("search") || "";
 
 const cart=useSelector((state)=>state.cart.items)||[];
 const wishlist=useSelector((state)=>state.wishlist.items)||[];
+const { token, isAuthenticated } = useSelector((state) => state.user);
 
 const dispatch=useDispatch();
 
@@ -116,18 +124,38 @@ const cartCount=cart.reduce((total,item)=>total+item.quantity,0);
 useEffect(()=>{
 const fetchProducts=async()=>{
 try{
-const resp=await axios.get("https://art-studio-mh42.onrender.com/AllProducts");
-setProducts(resp.data.data || []);
+setLoading(true);
+const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
+let url = `${BACKEND_URL}/AllProducts`;
+const resp=await axios.get(url);
+const fetchedList = resp.data.products || resp.data.data || [];
+setProducts(fetchedList);
 }catch(err){
 console.log("Product Fetch Error:",err);
+}finally{
+setLoading(false);
 }
 };
 fetchProducts();
 },[]);
 
+const displayedProducts = products.filter((prod) => {
+  if (!searchQuery.trim()) return true;
+  const title = prod.title || "";
+  return title.toLowerCase().includes(searchQuery.trim().toLowerCase());
+});
+
   const handleAddToCart = async (prod) => {
+    const hasToken = token || localStorage.getItem("token") || isAuthenticated;
+    if (!hasToken) {
+      toast.warn("Please sign in to add items to your cart.");
+      navigate(`/signin?returnTo=${encodeURIComponent(location.pathname)}`);
+      return;
+    }
+
     try {
-      const response = await axios.post(`https://art-studio-mh42.onrender.com/products/reserve/${prod._id}`, { quantity: 1 });
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
+      const response = await axios.post(`${BACKEND_URL}/products/reserve/${prod._id}`, { quantity: 1 });
       if (response.data.success) {
         dispatch(addtoCart(prod));
         setProducts((prev) =>
@@ -164,65 +192,82 @@ Our Art Materials
 
 <div className="grid grid-cols-5 gap-4">
 
-{products.map((prod)=>{
-
-const isInWishlist=wishlist.some((item)=>item._id===prod._id);
-
-return(
-<div key={prod._id} className="bg-white p-2 rounded-lg shadow-md flex flex-col items-center gap-3 cursor-pointer hover:scale-105 transition duration-300 relative">
-
-<button
-  onClick={(e) => {
-    e.stopPropagation();
-
-    setPoppingId(prod._id);
-    setTimeout(() => setPoppingId(null), 300);
-
-    if (isInWishlist) {
-      dispatch(removeFromWishlist(prod._id));
-    } else {
-      dispatch(addToWishlist(prod));
-    }
-  }}
-
-
-className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white shadow border flex items-center justify-center hover:scale-110 ${poppingId===prod._id?"animate-heart-pop":""}`}
->
-
-<span className={`text-lg ${isInWishlist?"text-red-600":"text-[#FF6B6B]"}`}>
-{isInWishlist?"♥":"♡"}
-</span>
-
-</button>
-
-<img src={prod.image} alt={prod.title} className="h-[210px] object-contain"/>
-
-<div className="flex flex-col items-center gap-2">
-<h2>{prod.title}</h2>
-<p>₹{prod.price}</p>
-{prod.quantity <= 0 ? (
-  <p className="text-red-500 font-semibold">Out of Stock</p>
+{loading ? (
+  <div className="col-span-5 text-center py-12">
+    <p className="text-gray-500 text-xl font-semibold">Loading products...</p>
+  </div>
+) : displayedProducts.length === 0 ? (
+  <div className="col-span-5 text-center py-12">
+    <p className="text-gray-500 text-xl font-semibold">No products found</p>
+  </div>
 ) : (
-  <p>Quantity : {prod.quantity}</p>
+  displayedProducts.map((prod)=>{
+
+  const isInWishlist=wishlist.some((item)=>item._id===prod._id);
+
+  return(
+  <div key={prod._id} className="bg-white p-2 rounded-lg shadow-md flex flex-col items-center gap-3 cursor-pointer hover:scale-105 transition duration-300 relative">
+
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+
+      const hasToken = token || localStorage.getItem("token") || isAuthenticated;
+      if (!hasToken) {
+        toast.warn("Please sign in to add items to your wishlist.");
+        navigate(`/signin?returnTo=${encodeURIComponent(location.pathname)}`);
+        return;
+      }
+
+      setPoppingId(prod._id);
+      setTimeout(() => setPoppingId(null), 300);
+
+      if (isInWishlist) {
+        dispatch(removeFromWishlist(prod._id));
+      } else {
+        dispatch(addToWishlist(prod));
+      }
+    }}
+
+
+  className={`absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-full bg-white shadow border flex items-center justify-center hover:scale-110 ${poppingId===prod._id?"animate-heart-pop":""}`}
+  >
+
+  <span className={`text-lg ${isInWishlist?"text-red-600":"text-[#FF6B6B]"}`}>
+  {isInWishlist?"♥":"♡"}
+  </span>
+
+  </button>
+
+  <img src={prod.image} alt={prod.title} className="h-[210px] object-contain"/>
+
+  <div className="flex flex-col items-center gap-2">
+  <h2>{prod.title}</h2>
+  <p>₹{prod.price}</p>
+  {prod.quantity <= 0 ? (
+    <p className="text-red-500 font-semibold">Out of Stock</p>
+  ) : (
+    <p>Quantity : {prod.quantity}</p>
+  )}
+  </div>
+
+  <button
+  onClick={()=>handleAddToCart(prod)}
+  disabled={prod.quantity <= 0}
+  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+    prod.quantity <= 0
+      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+      : "bg-amber-400 text-slate-900 hover:bg-amber-300"
+  }`}
+  >
+  {prod.quantity <= 0 ? "Out of Stock" : "Add to Cart"}
+  </button>
+
+  </div>
+  );
+
+  })
 )}
-</div>
-
-<button
-onClick={()=>handleAddToCart(prod)}
-disabled={prod.quantity <= 0}
-className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-  prod.quantity <= 0
-    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-    : "bg-amber-400 text-slate-900 hover:bg-amber-300"
-}`}
->
-{prod.quantity <= 0 ? "Out of Stock" : "Add to Cart"}
-</button>
-
-</div>
-);
-
-})}
 
 </div>
 

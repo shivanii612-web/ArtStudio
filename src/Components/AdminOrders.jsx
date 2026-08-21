@@ -9,8 +9,9 @@ const AdminOrders = () => {
 
   const fetchOrders = async () => {
     try {
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       const res = await axios.get(
-        "https://art-studio-mh42.onrender.com/orders/all"
+        `${BACKEND_URL}/orders/all`
       );
 
       setOrders(res.data.orders);
@@ -29,8 +30,9 @@ const AdminOrders = () => {
   const updateStatus = async (id, status) => {
     try {
 
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       await axios.put(
-        `https://art-studio-mh42.onrender.com/orders/status/${id}`,
+        `${BACKEND_URL}/orders/status/${id}`,
         { status }
       );
 

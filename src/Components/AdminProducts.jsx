@@ -25,8 +25,9 @@ const AdminProducts = () => {
 
     try {
 
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       const res = await axios.get(
-        "https://art-studio-mh42.onrender.com/AllProducts"
+        `${BACKEND_URL}/AllProducts`
       );
 
       setProducts(res.data.data || []);
@@ -76,8 +77,9 @@ const AdminProducts = () => {
     try{
 
 
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       await axios.post(
-        "https://art-studio-mh42.onrender.com/create",
+        `${BACKEND_URL}/create`,
         {
           title,
           description,
@@ -139,9 +141,9 @@ const AdminProducts = () => {
     try{
 
 
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       await axios.put(
-
-        `https://art-studio-mh42.onrender.com/updateproduct/${editProduct._id}`,
+        `${BACKEND_URL}/updateproduct/${editProduct._id}`,
 
         {
           title:editProduct.title,
@@ -198,9 +200,9 @@ const AdminProducts = () => {
     try{
 
 
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       await axios.delete(
-
-        `https://art-studio-mh42.onrender.com/delete/${id}`
+        `${BACKEND_URL}/delete/${id}`
 
       );
 

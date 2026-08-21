@@ -1,13 +1,36 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const storedWishlist = localStorage.getItem("wishlist");
+const getUserId = () => {
+  try {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user._id || user.id || user.email;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  return null;
+};
+
+const getInitialWishlist = () => {
+  const userId = getUserId();
+  if (userId) {
+    const storedWishlist = localStorage.getItem(`wishlist_${userId}`);
+    return storedWishlist ? JSON.parse(storedWishlist) : [];
+  }
+  return [];
+};
 
 const initialState = {
-  items: storedWishlist ? JSON.parse(storedWishlist) : [],
+  items: getInitialWishlist(),
 };
 
 const saveWishlistToLocalStorage = (items) => {
-  localStorage.setItem("wishlist", JSON.stringify(items));
+  const userId = getUserId();
+  if (userId) {
+    localStorage.setItem(`wishlist_${userId}`, JSON.stringify(items));
+  }
 };
 
 const wishlistSlice = createSlice({
@@ -39,7 +62,26 @@ const wishlistSlice = createSlice({
 
     clearWishlist(state) {
       state.items = [];
-      localStorage.removeItem("wishlist");
+      const userId = getUserId();
+      if (userId) {
+        localStorage.removeItem(`wishlist_${userId}`);
+      } else {
+        localStorage.removeItem("wishlist");
+      }
+    },
+
+    setUserWishlist(state, action) {
+      const userId = action.payload;
+      if (userId) {
+        const storedWishlist = localStorage.getItem(`wishlist_${userId}`);
+        state.items = storedWishlist ? JSON.parse(storedWishlist) : [];
+      } else {
+        state.items = [];
+      }
+    },
+
+    logoutWishlist(state) {
+      state.items = [];
     },
   },
 });
@@ -48,6 +90,8 @@ export const {
   addToWishlist,
   removeFromWishlist,
   clearWishlist,
+  setUserWishlist,
+  logoutWishlist,
 } = wishlistSlice.actions;
 
 export default wishlistSlice.reducer;

@@ -22,7 +22,8 @@
  *            Only a Gmail App Password works here.
  */
 
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 const nodemailer = require("nodemailer");
 
 // Read and sanitise credentials — never log the password value
@@ -34,29 +35,11 @@ const emailPass = (process.env.EMAIL_PASS || "")
   .replace(/\s/g, "")          // strip spaces (e.g. "xxxx xxxx xxxx xxxx" → "xxxxxxxxxxxxxxxx")
   .replace(/^["']|["']$/g, ""); // strip accidental surrounding quotes
 
-// ── Startup credential check ──────────────────────────────────────────────────
-console.log("[Nodemailer] EMAIL_USER :", emailUser || "(NOT SET — check backend/.env)");
-console.log("[Nodemailer] EMAIL_PASS : length=" + emailPass.length + " (must be 16 for Gmail App Password)");
-
-if (!emailUser) {
-  console.error("[Nodemailer] ERROR: EMAIL_USER is not set in backend/.env");
-}
-if (emailPass.length === 0) {
-  console.error("[Nodemailer] ERROR: EMAIL_PASS is not set in backend/.env");
-} else if (emailPass.length !== 16) {
-  console.error(
-    "[Nodemailer] ERROR: EMAIL_PASS length is " + emailPass.length +
-    " but a Gmail App Password must be exactly 16 characters."
-  );
-  console.error("[Nodemailer]        Make sure you are using a Gmail App Password, NOT your normal Gmail password.");
-  console.error("[Nodemailer]        Generate one at: https://myaccount.google.com/apppasswords");
-}
-
 // ── Build the Gmail transporter ───────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // STARTTLS on port 587
+  port: 465,
+  secure: true, // Port 465 is secure
   auth: {
     user: emailUser,
     pass: emailPass,
@@ -68,34 +51,11 @@ const transporter = nodemailer.createTransport({
 });
 
 // ── Startup verification — runs immediately when server starts ────────────────
-// Logs whether Gmail SMTP authentication succeeds or fails.
-// NEVER logs the password.
-transporter.verify(function (error) {
+transporter.verify((error, success) => {
   if (error) {
-    console.error("[Nodemailer] Email transporter verification FAILED.");
-    console.error("[Nodemailer]   Error code   :", error.code);
-    console.error("[Nodemailer]   Error message:", error.message);
-
-    if (error.code === "EAUTH") {
-      console.error("[Nodemailer]   ──────────────────────────────────────────────────────");
-      console.error("[Nodemailer]   CAUSE : Gmail rejected the App Password (EAUTH).");
-      console.error("[Nodemailer]   FIX   : The current EMAIL_PASS is invalid or has been revoked.");
-      console.error("[Nodemailer]           1. Go to https://myaccount.google.com/apppasswords");
-      console.error("[Nodemailer]           2. Delete the old ArtStudio entry if it exists");
-      console.error("[Nodemailer]           3. Create a NEW App Password for ArtStudio");
-      console.error("[Nodemailer]           4. Copy the 16 chars and update EMAIL_PASS in backend/.env");
-      console.error("[Nodemailer]           5. Restart the backend");
-      console.error("[Nodemailer]   ──────────────────────────────────────────────────────");
-    }
-
-    if (error.code === "ECONNECTION" || error.code === "ETIMEDOUT") {
-      console.error("[Nodemailer]   CAUSE : Cannot reach smtp.gmail.com:587");
-      console.error("[Nodemailer]           Port 587 may be blocked by a firewall or VPN.");
-      console.error("[Nodemailer]           This works on Render (no firewall). Try disabling VPN locally.");
-    }
+    console.error("Email transporter verification failed:", error.message);
   } else {
-    console.log("[Nodemailer] Email transporter is ready.");
-    console.log("[Nodemailer] Sending emails from:", emailUser);
+    console.log("Email transporter is ready");
   }
 });
 

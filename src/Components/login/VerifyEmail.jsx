@@ -24,12 +24,14 @@ const VerifyEmail = () => {
 
   const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
 
+  const returnTo = searchParams.get("returnTo") || "/";
+
   useEffect(() => {
     if (!email) {
       toast.error("No pending verification session found. Please sign up first.");
-      navigate("/signup");
+      navigate(`/signup?returnTo=${encodeURIComponent(returnTo)}`);
     }
-  }, [email, navigate]);
+  }, [email, navigate, returnTo]);
 
   // Pre-fill from URL token if it updates
   useEffect(() => {
@@ -55,9 +57,12 @@ const VerifyEmail = () => {
 
       if (response.data.success) {
         setSuccess(true);
-        toast.success("Email Verified Successfully!");
+        toast.success("Email verified successfully. Account created.");
         // Clear session email after verification succeeds
         sessionStorage.removeItem("signupEmail");
+        setTimeout(() => {
+          navigate(`/signin?returnTo=${encodeURIComponent(returnTo)}`);
+        }, 1500);
       } else {
         setError(response.data.message || "Invalid verification code.");
       }
@@ -131,7 +136,7 @@ const VerifyEmail = () => {
               Email verified successfully!
             </p>
             <button
-              onClick={() => navigate("/signin")}
+              onClick={() => navigate(`/signin?returnTo=${encodeURIComponent(returnTo)}`)}
               className="w-full py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold transition shadow-lg hover:shadow-orange-500/20 transform hover:-translate-y-[1px] transition-all duration-300 text-sm"
             >
               Sign In
@@ -189,7 +194,7 @@ const VerifyEmail = () => {
             </div>
 
             <button
-              onClick={() => navigate("/signin")}
+              onClick={() => navigate(`/signin?returnTo=${encodeURIComponent(returnTo)}`)}
               className="w-full mt-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold transition border border-white/10 text-sm"
             >
               Back to Sign In

@@ -2,10 +2,11 @@ const express = require("express");  //product router
 
 const router = express.Router();
 console.log("Product Route Loaded");
-const { createProduct,getAllProducts,getProductById,updateProduct,deleteProduct,deleteAllProducts,reserveProductStock,releaseProductStock} = require("../Controller/ProductController");
+const { createProduct,getAllProducts,getProductById,updateProduct,deleteProduct,deleteAllProducts,reserveProductStock,releaseProductStock,searchProducts} = require("../Controller/ProductController");
 
 router.post("/create", createProduct);
 router.get("/AllProducts", getAllProducts);
+router.get("/products/search", searchProducts);
 router.get("/product/:id", getProductById);
 
 router.put("/updateproduct/:id", updateProduct);

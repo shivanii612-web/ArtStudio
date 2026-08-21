@@ -72,6 +72,16 @@ const redisClient = {
             console.error("Redis setEx error:", err);
         }
         return null;
+    },
+    async del(key) {
+        try {
+            if (client && client.isReady) {
+                return await client.del(key);
+            }
+        } catch (err) {
+            console.error("Redis del error:", err);
+        }
+        return null;
     }
 };
 

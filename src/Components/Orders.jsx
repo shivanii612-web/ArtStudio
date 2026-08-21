@@ -14,8 +14,9 @@ const Orders = () => {
     try {
       setLoading(true);
 
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       const res = await axios.get(
-        `https://art-studio-mh42.onrender.com/orders/user/${user._id}`
+        `${BACKEND_URL}/orders/user/${user._id}`
       );
 
       setOrders(res.data.orders);

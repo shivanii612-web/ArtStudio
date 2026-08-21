@@ -8,12 +8,13 @@ const createProduct = async (req, res) => {
     // 1. Create product in MongoDB
     const product = await Product.create(req.body);
 
-    // 2. Store product in Redis
+    // 2. Store product in Redis and invalidate cache list
     await redisClient.setEx(
       `product:${product._id}`,
       60 * 5,
       JSON.stringify(product)
     );
+    await redisClient.del("products");
 
     // 3. Get product from Redis
     const cachedProduct = await redisClient.get(
@@ -49,19 +50,21 @@ const createProduct = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-    try {
+  try {
     const cachedProducts = await redisClient.get("products");
 
     if (cachedProducts) {
-      console.log("Products fetched from Redis cache");
       const parsedProducts = JSON.parse(cachedProducts);
-      return res.status(200).json({
-        success: true,
-        message: "Products fetched successfully",
-        data: parsedProducts,
-        products: parsedProducts,
-        source: "redis Cache",
-      });
+      if (Array.isArray(parsedProducts) && parsedProducts.length > 0) {
+        console.log("Products fetched from Redis cache");
+        return res.status(200).json({
+          success: true,
+          message: "Products fetched successfully",
+          data: parsedProducts,
+          products: parsedProducts,
+          source: "redis Cache",
+        });
+      }
     }
 
     const products = await Product.find();
@@ -156,12 +159,13 @@ const updateProduct = async (req, res) => {
       });
     }
 
-    // 2. Store updated product in Redis
+    // 2. Store updated product in Redis and invalidate cache
     await redisClient.setEx(
       `product:${req.params.id}`,
       60 * 5,
       JSON.stringify(product)
     );
+    await redisClient.del("products");
 
     // 3. Get updated product from Redis
     const cachedProduct = await redisClient.get(
@@ -211,12 +215,14 @@ const deleteProduct = async (req, res) => {
       });
     }
 
-    // 2. Store deleted product in Redis
+    // 2. Store deleted product in Redis and invalidate cache
     await redisClient.setEx(
       `deletedProduct:${req.params.id}`,
       60 * 5,
       JSON.stringify(product)
     );
+    await redisClient.del("products");
+    await redisClient.del(`product:${req.params.id}`);
 
     // 3. Get deleted product from Redis
     const cachedProduct = await redisClient.get(
@@ -258,7 +264,7 @@ const deleteAllProducts = async (req, res) => {
     // 1. Delete all products from MongoDB
     const result = await Product.deleteMany({});
 
-    // 2. Store delete result in Redis
+    // 2. Store delete result in Redis and invalidate products cache
     await redisClient.setEx(
       "deletedProducts",
       60 * 5,
@@ -266,6 +272,7 @@ const deleteAllProducts = async (req, res) => {
         deletedCount: result.deletedCount,
       })
     );
+    await redisClient.del("products");
 
     // 3. Get delete result from Redis
     const cachedResult = await redisClient.get("deletedProducts");
@@ -386,6 +393,55 @@ const releaseProductStock = async (req, res) => {
 };
 
 
+// SEARCH PRODUCTS
+const searchProducts = async (req, res) => {
+  try {
+    const queryStr = (req.query.query || "").trim();
+    if (!queryStr) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+        message: "Empty query",
+      });
+    }
+
+    const normalizedQuery = queryStr.toLowerCase();
+    const cacheKey = `product-search:${normalizedQuery}`;
+
+    // Try to get from Redis cache
+    const cachedResults = await redisClient.get(cacheKey);
+    if (cachedResults) {
+      console.log("Search results fetched from Redis cache");
+      return res.status(200).json({
+        success: true,
+        data: JSON.parse(cachedResults),
+        source: "Redis Cache",
+      });
+    }
+
+    // Query MongoDB (case-insensitive partial match on title)
+    const products = await Product.find({
+      title: { $regex: queryStr, $options: "i" },
+    });
+
+    // Store in Redis cache for 5 minutes
+    await redisClient.setEx(cacheKey, 60 * 5, JSON.stringify(products));
+
+    res.status(200).json({
+      success: true,
+      data: products,
+      source: "MongoDB",
+    });
+  } catch (error) {
+    console.error("Search products error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to search products",
+    });
+  }
+};
+
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -394,7 +450,9 @@ module.exports = {
   deleteProduct,
   deleteAllProducts,
   reserveProductStock,
-  releaseProductStock
+  releaseProductStock,
+  searchProducts
 };
+
 
 

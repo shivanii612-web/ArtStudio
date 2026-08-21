@@ -5,6 +5,8 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../features/user/userSlice";
+import { setUserCart } from "../../features/cart/Cartslice";
+import { setUserWishlist } from "../../features/wishlist/Wishlistslice";
 import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -23,8 +25,9 @@ const SignIn = () => {
 
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     try {
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       const response = await axios.post(
-        "https://art-studio-mh42.onrender.com/google-login",
+        `${BACKEND_URL}/google-login`,
         {
           credential: credentialResponse.credential,
         }
@@ -49,6 +52,8 @@ const SignIn = () => {
             token: response.data.token,
           })
         );
+        dispatch(setUserCart(response.data.user._id));
+        dispatch(setUserWishlist(response.data.user._id));
 
         toast.success("Google Login Successful!");
 
@@ -81,8 +86,9 @@ const SignIn = () => {
     e.preventDefault();
 
     try {
+      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
       const response = await axios.post(
-        "https://art-studio-mh42.onrender.com/login",
+        `${BACKEND_URL}/login`,
         {
           email,
           password,
@@ -108,6 +114,8 @@ const SignIn = () => {
             token: response.data.token,
           })
         );
+        dispatch(setUserCart(response.data.user._id));
+        dispatch(setUserWishlist(response.data.user._id));
 
         toast.success("Login Successful!");
 

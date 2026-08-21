@@ -69,8 +69,9 @@ const Checkout = () => {
     };
 
 
+    const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
     const response = await axios.post(
-      "https://art-studio-mh42.onrender.com/orders/place",
+      `${BACKEND_URL}/orders/place`,
       orderData
     );
 

@@ -1,5 +1,8 @@
 "use strict";
 
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+
 const UserModel        = require("../Model/Usermodel");
 const PendingUserModel = require("../Model/PendingUserModel");
 const bcrypt           = require("bcryptjs");
@@ -125,24 +128,12 @@ const registerUser = async (req, res) => {
     // 6. Send OTP email — if this fails we return 500 (no success response, no navigation)
     try {
       await sendVerificationEmail(normalizedEmail, name, otp);
-    } catch (mailErr) {
-      console.error("===========================================");
-      console.error("[Register] EMAIL SEND FAILED");
-      console.error("  Code   :", mailErr.code || "N/A");
-      console.error("  Message:", mailErr.message);
-      console.error("  To     :", normalizedEmail);
-      console.error("===========================================");
+    } catch (error) {
+      console.error("Verification email sending failed:", error.message);
 
       // Roll back: remove the pending record so the same email can retry cleanly
       await PendingUserModel.deleteOne({ email: normalizedEmail }).catch(() => {});
 
-      if (mailErr.code === "EAUTH") {
-        return res.status(500).json({
-          success: false,
-          message:
-            "Email service authentication failed. Please contact support.",
-        });
-      }
       return res.status(500).json({
         success: false,
         message: "Unable to send verification email. Please try again.",
@@ -273,27 +264,15 @@ const resendVerification = async (req, res) => {
 
     try {
       await sendVerificationEmail(normalizedEmail, pending.name, otp);
-    } catch (mailErr) {
-      console.error("===========================================");
-      console.error("[Resend] EMAIL SEND FAILED");
-      console.error("  Code   :", mailErr.code || "N/A");
-      console.error("  Message:", mailErr.message);
-      console.error("  To     :", normalizedEmail);
-      console.error("===========================================");
-
-      if (mailErr.code === "EAUTH") {
-        return res.status(500).json({
-          success: false,
-          message: "Email service authentication failed. Please contact support.",
-        });
-      }
+    } catch (error) {
+      console.error("Verification email sending failed:", error.message);
       return res.status(500).json({
         success: false,
         message: "Unable to send verification email. Please try again.",
       });
     }
 
-    return res.status(200).json({ success: true, message: "New verification code sent." });
+    return res.status(200).json({ success: true, message: "New OTP sent successfully." });
   } catch (err) {
     console.error("[resendVerification] Error:", err);
     return res.status(500).json({ success: false, message: "Internal Server Error." });
