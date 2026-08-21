@@ -173,12 +173,12 @@ const displayedProducts = products.filter((prod) => {
 <Navbar cartCount={cartCount}/>
 
 <div className="relative">
-<img src={heroImg} alt="Hero Banner" className="w-full h-[500px] object-cover object-center"/>
+<img src={heroImg} alt="Hero Banner" className="w-full h-[300px] sm:h-[500px] object-cover object-center"/>
 
-<div className="absolute top-1/2 left-16 -translate-y-1/2 text-white drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
-<h1 className="text-5xl font-bold">Unleash Your Creativity</h1>
-<p className="mt-4 text-xl font-semibold">Premium Art Supplies for Every Artist</p>
-<button className="mt-6 bg-orange-500 px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-all duration-300">
+<div className="absolute top-1/2 left-6 sm:left-16 -translate-y-1/2 text-white drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)] max-w-[85%] sm:max-w-none">
+<h1 className="text-3xl sm:text-5xl font-bold">Unleash Your Creativity</h1>
+<p className="mt-2 sm:mt-4 text-lg sm:text-xl font-semibold">Premium Art Supplies for Every Artist</p>
+<button className="mt-4 sm:mt-6 bg-orange-500 px-6 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-all duration-300">
 Shop Now
 </button>
 </div>
@@ -190,7 +190,7 @@ Shop Now
 Our Art Materials
 </h1>
 
-<div className="grid grid-cols-5 gap-4">
+<div className="grid grid-cols-2 md:grid-cols-5 gap-4">
 
 {loading ? (
   <div className="col-span-5 text-center py-12">

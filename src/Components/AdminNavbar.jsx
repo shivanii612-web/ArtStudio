@@ -22,7 +22,7 @@ const AdminNavbar = () => {
   };
 
   return (
-    <nav className="bg-[#2f4357] text-white px-8 py-4 flex justify-between items-center border-b-2 border-[#F97316] shadow-sm">
+    <nav className="bg-[#2f4357] text-white px-4 sm:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0 border-b-2 border-[#F97316] shadow-sm">
 
       {/* Admin Logo / Title */}
       <div className="flex items-center gap-2">
@@ -33,7 +33,7 @@ const AdminNavbar = () => {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="flex gap-8 items-center">
+      <div className="flex flex-wrap gap-4 sm:gap-8 items-center justify-center">
 
         {/* Products */}
         <button

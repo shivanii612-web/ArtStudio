@@ -267,7 +267,7 @@ const AdminProducts = () => {
             Add Product
           </h2>
 
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <input
               type="text"
               placeholder="Product Title"
@@ -307,7 +307,7 @@ const AdminProducts = () => {
               placeholder="Description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="border border-[#E7E0D8] p-3 rounded-xl col-span-2 focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316] transition-all bg-[#F8F5F0]/20"
+              className="border border-[#E7E0D8] p-3 rounded-xl col-span-1 sm:col-span-2 focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316] transition-all bg-[#F8F5F0]/20"
               rows="4"
               required
             />
@@ -330,7 +330,7 @@ const AdminProducts = () => {
               Update Product
             </h2>
 
-            <div className="grid grid-cols-2 gap-5 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-5">
               <input
                 value={editProduct.title}
                 onChange={(e) =>
@@ -388,7 +388,7 @@ const AdminProducts = () => {
                   })
                 }
                 placeholder="Description"
-                className="border border-[#E7E0D8] p-3 rounded-xl w-full col-span-2 focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316] transition-all bg-[#F8F5F0]/20"
+                className="border border-[#E7E0D8] p-3 rounded-xl w-full col-span-1 sm:col-span-2 focus:outline-none focus:ring-2 focus:ring-[#F97316]/30 focus:border-[#F97316] transition-all bg-[#F8F5F0]/20"
                 rows="4"
               />
             </div>

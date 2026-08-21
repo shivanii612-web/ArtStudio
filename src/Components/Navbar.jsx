@@ -103,7 +103,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800/60 text-white px-8 py-3.5 flex justify-between items-center z-50 shadow-md shadow-black/10">
+    <nav className="sticky top-0 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800/60 text-white px-4 sm:px-8 py-3.5 flex flex-col lg:flex-row justify-between items-center gap-4 lg:gap-0 z-50 shadow-md shadow-black/10">
 
       {/* Logo */}
       <h1
@@ -114,7 +114,7 @@ const Navbar = () => {
       </h1>
 
       {/* Product Search Area */}
-      <div ref={searchRef} className="relative flex-1 max-w-md mx-8">
+      <div ref={searchRef} className="relative flex-1 w-full max-w-md mx-0 lg:mx-8">
         <div className="relative group">
           <input
             type="text"
@@ -166,7 +166,7 @@ const Navbar = () => {
       </div>
 
       {/* Right Side */}
-      <div className="flex items-center gap-5">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 w-full lg:w-auto">
 
         {/* Wishlist */}
         <button

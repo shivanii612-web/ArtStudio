@@ -85,71 +85,73 @@ const Cart = () => {
           Your cart is empty.
         </p>
       ) : (
-        <div className="flex gap-6 px-10 pb-10 items-start">
-          <div className="w-[68%] bg-white rounded-xl shadow-md p-5">
-            <div className="grid grid-cols-5 bg-orange-400 text-white font-bold p-3 rounded-lg mb-4 text-center">
-              <p>Product</p>
-              <p>Price</p>
-              <p>Quantity</p>
-              <p>Subtotal</p>
-              <p>Remove</p>
-            </div>
+        <div className="flex flex-col lg:flex-row gap-6 px-4 sm:px-10 pb-10 items-start w-full">
+          <div className="w-full lg:w-[68%] bg-white rounded-xl shadow-md p-4 sm:p-5 overflow-x-auto">
+            <div className="min-w-[620px]">
+              <div className="grid grid-cols-5 bg-orange-400 text-white font-bold p-3 rounded-lg mb-4 text-center">
+                <p>Product</p>
+                <p>Price</p>
+                <p>Quantity</p>
+                <p>Subtotal</p>
+                <p>Remove</p>
+              </div>
 
-            {cart.map((item) => {
-              const itemSubtotal =
-                getPrice(item.price) * item.quantity;
+              {cart.map((item) => {
+                const itemSubtotal =
+                  getPrice(item.price) * item.quantity;
 
-              return (
-                <div
-                  key={item._id}
-                  className="grid grid-cols-5 items-center text-center border-b py-4"
-                >
-                  <div className="flex items-center gap-4 text-left">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-
-                    <h2 className="font-semibold">
-                      {item.title}
-                    </h2>
-                  </div>
-
-                  <p>₹{item.price}</p>
-
-                  <div className="flex justify-center items-center gap-3">
-                    <button
-                      onClick={() => handleDecrease(item)}
-                      className="bg-gray-200 px-3 py-1 rounded font-bold"
-                    >
-                      -
-                    </button>
-
-                    <span>{item.quantity}</span>
-
-                    <button
-                      onClick={() => handleIncrease(item)}
-                      className="bg-gray-200 px-3 py-1 rounded font-bold"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <p>₹{itemSubtotal}</p>
-
-                  <button
-                    onClick={() => handleRemove(item)}
-                    className="bg-red-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-red-700"
+                return (
+                  <div
+                    key={item._id}
+                    className="grid grid-cols-5 items-center text-center border-b py-4"
                   >
-                    Remove
-                  </button>
-                </div>
-              );
-            })}
+                    <div className="flex items-center gap-4 text-left">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-24 h-24 object-cover rounded-lg"
+                      />
+
+                      <h2 className="font-semibold">
+                        {item.title}
+                      </h2>
+                    </div>
+
+                    <p>₹{item.price}</p>
+
+                    <div className="flex justify-center items-center gap-3">
+                      <button
+                        onClick={() => handleDecrease(item)}
+                        className="bg-gray-200 px-3 py-1 rounded font-bold"
+                      >
+                        -
+                      </button>
+
+                      <span>{item.quantity}</span>
+
+                      <button
+                        onClick={() => handleIncrease(item)}
+                        className="bg-gray-200 px-3 py-1 rounded font-bold"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <p>₹{itemSubtotal}</p>
+
+                    <button
+                      onClick={() => handleRemove(item)}
+                      className="bg-red-500 text-white px-3 py-2 rounded-lg font-semibold hover:bg-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="w-[32%] bg-white rounded-xl shadow-md p-6">
+          <div className="w-full lg:w-[32%] bg-white rounded-xl shadow-md p-6">
             <h2 className="text-2xl font-bold mb-6">
               Order Summary
             </h2>

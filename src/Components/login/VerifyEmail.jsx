@@ -124,7 +124,7 @@ const VerifyEmail = () => {
       </div>
 
       {/* Verification Card */}
-      <div className="relative z-10 w-[400px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-6 mr-0 md:mr-6 text-center text-white">
+      <div className="relative z-10 w-full max-w-[400px] bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-6 mr-0 md:mr-6 text-center text-white">
         <h1 className="text-3xl font-bold text-center text-white tracking-tight font-serif mb-4">
           Email Verification
         </h1>
