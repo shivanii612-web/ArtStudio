@@ -197,14 +197,24 @@ const verifyEmail = async (req, res) => {
       });
     }
 
-    // Create the real user — emailVerified: true
-    const user = await UserModel.create({
-      name:          pending.name,
-      email:         normalizedEmail,
-      password:      pending.password,
-      role:          pending.role || "user",
-      emailVerified: true,
-    });
+    // Check if user already exists in UserModel (unverified)
+    let user = await UserModel.findOne({ email: normalizedEmail });
+
+    if (user) {
+      user.name = pending.name;
+      user.password = pending.password;
+      user.role = pending.role || "user";
+      user.emailVerified = true;
+      await user.save();
+    } else {
+      user = await UserModel.create({
+        name:          pending.name,
+        email:         normalizedEmail,
+        password:      pending.password,
+        role:          pending.role || "user",
+        emailVerified: true,
+      });
+    }
 
     // Remove pending record
     await PendingUserModel.deleteOne({ _id: pending._id });
@@ -495,6 +505,194 @@ const googleLogin = async (req, res) => {
 };
 
 // ---------------------------------------------------------------------------
+// Helper — send the Password Reset Email
+// ---------------------------------------------------------------------------
+const sendPasswordResetEmail = async (email, name, otp) => {
+  const mailOptions = {
+    from: `"ArtStudio" <${(process.env.EMAIL_USER || "").trim()}>`,
+    to: email,
+    subject: "ArtStudio — your password reset code",
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:20px;
+                  border:1px solid #eee;border-radius:10px;">
+        <h2 style="color:#f97316;text-align:center;font-family:serif;">ArtStudio</h2>
+        <hr style="border:0;border-top:1px solid #eee;"/>
+        <p>Hi ${name},</p>
+        <p>You requested a password reset for your ArtStudio account. Use the verification code below to reset your password:</p>
+        <div style="text-align:center;margin:24px 0;">
+          <p style="font-size:15px;font-weight:bold;color:#333;margin-bottom:8px;">
+            Your 6-digit verification code:
+          </p>
+          <p style="font-size:36px;font-weight:bold;color:#f97316;
+                    letter-spacing:8px;margin:0;">${otp}</p>
+          <p style="font-size:12px;color:#888;margin-top:8px;">
+            This code expires in 10 minutes.
+          </p>
+        </div>
+        <p style="font-size:12px;color:#666;">
+          If you did not request this, you can safely ignore this email.
+        </p>
+      </div>
+    `,
+  };
+
+  console.log(`[Email] Attempting to send password reset email to: ${email}`);
+  await transporter.sendMail(mailOptions);
+  console.log(`[Email] Password reset email sent successfully.`);
+};
+
+// ---------------------------------------------------------------------------
+// FORGOT PASSWORD  POST /forgot-password
+// ---------------------------------------------------------------------------
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required." });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await UserModel.findOne({ email: normalizedEmail });
+
+    // Safe message to prevent account enumeration
+    const safeMessage = "If this email is registered, a password reset code has been sent.";
+
+    if (!user) {
+      return res.status(200).json({ success: true, message: safeMessage });
+    }
+
+    // Generate random 6-digit OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Hash OTP using SHA-256
+    const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
+
+    // Save to user model
+    user.resetPasswordOtp = hashedOtp;
+    user.resetPasswordOtpExpires = otpExpires;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenExpires = undefined;
+    await user.save();
+
+    // Send email
+    try {
+      await sendPasswordResetEmail(normalizedEmail, user.name, otp);
+    } catch (mailErr) {
+      console.error("[ForgotPassword] Email send error:", mailErr.message);
+      user.resetPasswordOtp = undefined;
+      user.resetPasswordOtpExpires = undefined;
+      await user.save();
+      return res.status(500).json({ success: false, message: "Email service authentication failed. Please contact support." });
+    }
+
+    return res.status(200).json({ success: true, message: safeMessage });
+  } catch (err) {
+    console.error("[forgotPassword] Error:", err);
+    return res.status(500).json({ success: false, message: "Internal Server Error." });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// VERIFY RESET OTP  POST /verify-reset-otp
+// ---------------------------------------------------------------------------
+const verifyResetOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ success: false, message: "Email and verification code are required." });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await UserModel.findOne({ email: normalizedEmail });
+
+    if (!user || !user.resetPasswordOtp || !user.resetPasswordOtpExpires) {
+      return res.status(400).json({ success: false, message: "Invalid or expired verification code." });
+    }
+
+    if (new Date() > user.resetPasswordOtpExpires) {
+      return res.status(400).json({ success: false, message: "Verification code has expired. Please request a new one." });
+    }
+
+    // Verify OTP using SHA-256
+    const hashedIncoming = crypto.createHash("sha256").update(otp.trim()).digest("hex");
+    if (user.resetPasswordOtp !== hashedIncoming) {
+      return res.status(400).json({ success: false, message: "Invalid verification code." });
+    }
+
+    // OTP is valid. Invalidate the OTP and generate a short-lived reset password token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedResetToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    const resetTokenExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordOtpExpires = undefined;
+    user.resetPasswordToken = hashedResetToken;
+    user.resetPasswordTokenExpires = resetTokenExpires;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Verification code verified successfully.",
+      resetToken,
+    });
+  } catch (err) {
+    console.error("[verifyResetOtp] Error:", err);
+    return res.status(500).json({ success: false, message: "Internal Server Error." });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// RESET PASSWORD  POST /reset-password
+// ---------------------------------------------------------------------------
+const resetPassword = async (req, res) => {
+  try {
+    const { resetToken, password } = req.body;
+    if (!resetToken || !password) {
+      return res.status(400).json({ success: false, message: "Reset token and password are required." });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: "Password must be at least 6 characters long." });
+    }
+
+    // Identify user strictly by the resetToken
+    const hashedIncomingToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+    const user = await UserModel.findOne({
+      resetPasswordToken: hashedIncomingToken,
+    });
+
+    if (!user || !user.resetPasswordTokenExpires) {
+      return res.status(400).json({ success: false, message: "Invalid or expired reset session. Please request a new OTP." });
+    }
+
+    if (new Date() > user.resetPasswordTokenExpires) {
+      return res.status(400).json({ success: false, message: "Reset session has expired. Please request a new OTP." });
+    }
+
+    // Hash new password using bcrypt
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update user password and clear reset token fields
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordTokenExpires = undefined;
+    await user.save();
+
+    // Clear user cached data in Redis to force refresh on login
+    await redisClient.del(`user:${user._id}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully. You can now sign in.",
+    });
+  } catch (err) {
+    console.error("[resetPassword] Error:", err);
+    return res.status(500).json({ success: false, message: "Internal Server Error." });
+  }
+};
+
+// ---------------------------------------------------------------------------
 module.exports = {
   registerUser,
   loginUser,
@@ -505,4 +703,7 @@ module.exports = {
   googleLogin,
   verifyEmail,
   resendVerification,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword,
 };

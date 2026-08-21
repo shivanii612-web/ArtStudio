@@ -204,9 +204,17 @@ const SignIn = () => {
 
         {/* Password */}
 
-        <label className="text-white font-semibold text-sm">
-          Password
-        </label>
+        <div className="flex justify-between items-center mt-1.5 mb-1 px-0.5">
+          <label className="text-white font-semibold text-sm">
+            Password
+          </label>
+          <span
+            onClick={() => navigate("/forgot-password")}
+            className="text-xs text-orange-400 hover:text-orange-300 hover:underline cursor-pointer transition duration-300"
+          >
+            Forgot Password?
+          </span>
+        </div>
 
         <div className="relative mt-1 mb-3.5">
           <input
