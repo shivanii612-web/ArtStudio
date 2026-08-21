@@ -1,4 +1,5 @@
 const UserModel = require("../Model/Usermodel");
+const PendingUserModel = require("../Model/PendingUserModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { redisClient } = require("../Config/redis");
@@ -33,6 +34,7 @@ const sendVerificationEmail = async (email, name, otp) => {
   };
 
   console.log(`[Email] Attempting to send OTP to: ${email}`);
+  // This will throw if credentials are wrong (EAUTH) or SMTP is unreachable (ECONNECTION)
   const info = await transporter.sendMail(mailOptions);
   console.log(`[Email] OTP sent successfully to: ${email} | MessageId: ${info.messageId}`);
 };
@@ -53,6 +55,19 @@ const registerUser = async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase();
     const existingUser = await UserModel.findOne({ email: normalizedEmail });
 
+    if (existingUser) {
+      if (existingUser.emailVerified) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already registered. Please sign in.",
+        });
+      } else {
+        // Remove unverified placeholder in main UserModel
+        await UserModel.deleteOne({ _id: existingUser._id });
+        await redisClient.del(`user:${existingUser._id}`);
+      }
+    }
+
     const otp = crypto.randomInt(100000, 999999).toString();
     const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
@@ -67,86 +82,47 @@ const registerUser = async (req, res) => {
       });
     }
 
-    if (existingUser) {
-      if (existingUser.emailVerified) {
-        return res.status(400).json({
-          success: false,
-          message: "User already exists",
-        });
-      }
-
-      // If unverified, update details and generate a new OTP instead of creating another duplicate account
-      existingUser.name = name;
-      existingUser.password = hashedPassword;
-      existingUser.role = role || existingUser.role;
-      existingUser.verificationToken = otp;
-      existingUser.verificationTokenExpires = otpExpires;
-      await existingUser.save();
-
-      // Update Redis cache
-      const userData = existingUser.toObject();
-      delete userData.password;
-      await redisClient.setEx(
-        `user:${existingUser._id}`,
-        60 * 5,
-        JSON.stringify(userData)
-      );
-
-      // Send email
-      try {
-        await sendVerificationEmail(normalizedEmail, name, otp);
-      } catch (mailErr) {
-        console.error("Email sending failed for existing unverified user:", mailErr?.message || mailErr);
-        console.error("Full email error:", mailErr);
-        return res.status(500).json({
-          success: false,
-          message: "Registration successful but we could not send the verification email. Please try again in a moment.",
-        });
-      }
-
-      return res.status(201).json({
-        success: true,
-        message: "Verification email sent! Please check your inbox.",
-      });
-    }
-
-    // 1. Create user in MongoDB
-    const newuser = await UserModel.create({
-      name,
-      email: normalizedEmail,
-      password: hashedPassword,
-      role,
-      emailVerified: false,
-      verificationToken: otp,
-      verificationTokenExpires: otpExpires,
-    });
-
-    // Remove password before storing in Redis
-    const userData = newuser.toObject();
-    delete userData.password;
-
-    // 2. Store user in Redis
-    await redisClient.setEx(
-      `user:${newuser._id}`,
-      60 * 5,
-      JSON.stringify(userData)
+    // Save pending user temporarily
+    await PendingUserModel.findOneAndUpdate(
+      { email: normalizedEmail },
+      {
+        name,
+        email: normalizedEmail,
+        password: hashedPassword,
+        role: role || "user",
+        otp,
+        otpExpires,
+        createdAt: new Date()
+      },
+      { upsert: true, new: true }
     );
 
     // Send verification email using Nodemailer
     try {
       await sendVerificationEmail(normalizedEmail, name, otp);
     } catch (mailErr) {
-      console.error("Email sending failed for new user:", mailErr?.message || mailErr);
-      console.error("Full email error:", mailErr);
+      console.error("========================================");
+      console.error("[Register] Email sending FAILED");
+      console.error("Error code   :", mailErr.code);
+      console.error("Error message:", mailErr.message);
+      console.error("To           :", normalizedEmail);
+      console.error("========================================");
+      // On EAUTH the app password is wrong — give a specific message
+      if (mailErr.code === "EAUTH") {
+        return res.status(500).json({
+          success: false,
+          message: "Email service authentication failed. Please contact support.",
+        });
+      }
       return res.status(500).json({
         success: false,
-        message: "Registration successful but we could not send the verification email. Please try again in a moment.",
+        message: "Unable to send verification email. Please try again.",
       });
     }
 
-    return res.status(201).json({
+    return res.status(200).json({
       success: true,
-      message: "Verification email sent! Please check your inbox.",
+      message: "Verification code sent to your email.",
     });
 
   } catch (err) {
@@ -173,7 +149,9 @@ const loginUser = async (req, res) => {
 
     // 1. Get user from MongoDB
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await UserModel.findOne({ email: normalizedEmail });
+    const user = await UserModel.findOne({
+      email: { $regex: new RegExp(`^${normalizedEmail}$`, "i") }
+    });
 
     console.log("User: ", user);
 
@@ -196,7 +174,7 @@ const loginUser = async (req, res) => {
       });
     }
 
-    if (!user.emailVerified) {
+    if (user.role !== "admin" && !user.emailVerified) {
       return res.status(403).json({
         success: false,
         message: "Please verify your email before logging in.",
@@ -204,7 +182,7 @@ const loginUser = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       "secret_key",
       { expiresIn: "8h" }
     );
@@ -259,7 +237,7 @@ const loginUser = async (req, res) => {
 // UPDATE USER
 const updateUser = async (req, res) => {
   try {
-    const { name, email, role } = req.body;
+    const { name, email, role, password } = req.body;
 
     // 1. Get user from MongoDB
     const user = await UserModel.findById(req.params.id);
@@ -274,8 +252,25 @@ const updateUser = async (req, res) => {
     }
 
     user.name = name || user.name;
-    user.email = email || user.email;
+    
+    if (email) {
+      const normalizedEmail = email.trim().toLowerCase();
+      // Check if there is another user with this email to avoid duplicate key error
+      const existingUser = await UserModel.findOne({
+        email: { $regex: new RegExp(`^${normalizedEmail}$`, "i") }
+      });
+      if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+        await UserModel.findByIdAndDelete(existingUser._id);
+        await redisClient.del(`user:${existingUser._id}`);
+      }
+      user.email = email;
+    }
+
     user.role = role || user.role;
+
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
 
     const updatedUser = await user.save();
 
@@ -597,47 +592,61 @@ const verifyEmail = async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await UserModel.findOne({ email: normalizedEmail });
+    const pendingUser = await PendingUserModel.findOne({ email: normalizedEmail });
 
-    if (!user) {
+    if (!pendingUser) {
+      // Check if user is already verified and registered in main UserModel
+      const alreadyUser = await UserModel.findOne({ email: normalizedEmail });
+      if (alreadyUser && alreadyUser.emailVerified) {
+        return res.status(200).json({
+          success: true,
+          message: "Email verified successfully. Account created.",
+        });
+      }
       return res.status(400).json({
         success: false,
-        message: "Invalid verification code or email.",
+        message: "Invalid OTP",
       });
     }
 
-    if (user.emailVerified) {
+    if (pendingUser.otp !== otp) {
       return res.status(400).json({
         success: false,
-        message: "User already verified.",
+        message: "Invalid OTP",
       });
     }
 
-    if (user.verificationToken !== otp) {
+    if (pendingUser.otpExpires && new Date() > pendingUser.otpExpires) {
       return res.status(400).json({
         success: false,
-        message: "Invalid verification code.",
+        message: "OTP expired. Please request a new OTP.",
       });
     }
 
-    if (user.verificationTokenExpires && new Date() > user.verificationTokenExpires) {
-      return res.status(400).json({
-        success: false,
-        message: "Verification code has expired.",
-      });
-    }
+    // Create the actual user document in MongoDB
+    const user = await UserModel.create({
+      name: pendingUser.name,
+      email: normalizedEmail,
+      password: pendingUser.password,
+      role: pendingUser.role || "user",
+      emailVerified: true,
+    });
 
-    user.emailVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
-    await user.save();
+    // Delete pending temporary data
+    await PendingUserModel.deleteOne({ _id: pendingUser._id });
 
-    // Clear/update Redis cache so stale unverified user data does not remain
-    await redisClient.del(`user:${user._id}`);
+    // Store in Redis
+    const userData = user.toObject();
+    delete userData.password;
+    await redisClient.setEx(
+      `user:${user._id}`,
+      60 * 5,
+      JSON.stringify(userData)
+    );
 
     return res.status(200).json({
       success: true,
-      message: "Email verified successfully!",
+      message: "Email verified successfully. Account created.",
     });
   } catch (err) {
     console.error("verifyEmail Error:", err);
@@ -661,47 +670,56 @@ const resendVerification = async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await UserModel.findOne({ email: normalizedEmail });
+    const pendingUser = await PendingUserModel.findOne({ email: normalizedEmail });
 
-    if (!user) {
+    if (!pendingUser) {
+      // Check if user is already verified and registered
+      const verifiedUser = await UserModel.findOne({ email: normalizedEmail });
+      if (verifiedUser && verifiedUser.emailVerified) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already registered. Please sign in.",
+        });
+      }
       return res.status(404).json({
         success: false,
         message: "User not found.",
       });
     }
 
-    if (user.emailVerified) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists",
-      });
-    }
-
     const otp = crypto.randomInt(100000, 999999).toString();
     const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-    user.verificationToken = otp;
-    user.verificationTokenExpires = otpExpires;
-    await user.save();
-
-    // Clear/update Redis cache so stale token/expiry data does not remain
-    await redisClient.del(`user:${user._id}`);
+    pendingUser.otp = otp;
+    pendingUser.otpExpires = otpExpires;
+    pendingUser.createdAt = new Date(); // Reset TTL index
+    await pendingUser.save();
 
     // Send verification email
     try {
-      await sendVerificationEmail(normalizedEmail, user.name, otp);
+      await sendVerificationEmail(normalizedEmail, pendingUser.name, otp);
     } catch (mailErr) {
-      console.error("Email sending failed for resend verification:", mailErr?.message || mailErr);
-      console.error("Full email error:", mailErr);
+      console.error("========================================");
+      console.error("[Resend] Email sending FAILED");
+      console.error("Error code   :", mailErr.code);
+      console.error("Error message:", mailErr.message);
+      console.error("To           :", normalizedEmail);
+      console.error("========================================");
+      if (mailErr.code === "EAUTH") {
+        return res.status(500).json({
+          success: false,
+          message: "Email service authentication failed. Please contact support.",
+        });
+      }
       return res.status(500).json({
         success: false,
-        message: "Could not send the verification email. Please try again in a moment.",
+        message: "Unable to send verification email. Please try again.",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Verification OTP sent successfully",
+      message: "New OTP sent successfully.",
     });
   } catch (err) {
     console.error("resendVerification Error:", err);
