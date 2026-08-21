@@ -103,19 +103,19 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-[#2f4357] text-white px-8 py-4 flex justify-between items-center">
+    <nav className="sticky top-0 bg-[#0f172a]/90 backdrop-blur-md border-b border-slate-800/60 text-white px-8 py-3.5 flex justify-between items-center z-50 shadow-md shadow-black/10">
 
       {/* Logo */}
       <h1
         onClick={() => navigate("/")}
-        className="text-3xl font-bold text-orange-400 cursor-pointer"
+        className="text-3xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-300 to-amber-200 hover:opacity-90 cursor-pointer transition-all duration-300 hover:scale-[1.02]"
       >
         ArtStudio
       </h1>
 
       {/* Product Search Area */}
-      <div ref={searchRef} className="relative flex-1 max-w-md mx-6">
-        <div className="relative">
+      <div ref={searchRef} className="relative flex-1 max-w-md mx-8">
+        <div className="relative group">
           <input
             type="text"
             placeholder="Search products..."
@@ -127,37 +127,37 @@ const Navbar = () => {
                 setShowDropdown(true);
               }
             }}
-            className="w-full bg-[#1F2C39] text-white pl-10 pr-4 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-orange-400 placeholder-gray-400 text-sm font-semibold transition duration-300"
+            className="w-full bg-slate-800/40 backdrop-blur-sm text-white pl-10 pr-4 py-2 rounded-xl border border-slate-700/40 hover:bg-slate-800/60 hover:border-slate-600/40 focus:outline-none focus:bg-slate-800/60 focus:border-orange-500/60 focus:ring-2 focus:ring-orange-500/10 placeholder-slate-400/60 text-sm font-medium tracking-wide transition duration-300 shadow-inner"
           />
-          <span className="absolute left-3 top-2 text-gray-400">🔍</span>
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400 group-hover:text-slate-300 transition duration-300 pointer-events-none">🔍</span>
         </div>
 
         {showDropdown && (
-          <div className="absolute left-0 mt-2 w-full bg-white rounded-lg shadow-xl overflow-hidden z-50 border border-gray-200">
+          <div className="absolute left-0 mt-2 w-full bg-slate-900 rounded-xl shadow-xl overflow-hidden z-50 border border-slate-800">
             {results.length > 0 ? (
               <div className="max-h-80 overflow-y-auto">
                 {results.map((prod) => (
                   <div
                     key={prod._id}
                     onClick={() => handleResultClick(prod)}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 cursor-pointer border-b last:border-b-0 transition duration-150"
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800/60 last:border-b-0 transition duration-150"
                   >
                     <img
                       src={prod.image}
                       alt={prod.title}
-                      className="w-10 h-10 object-contain rounded"
+                      className="w-10 h-10 object-contain rounded-lg"
                     />
                     <div className="flex flex-col flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 truncate">
+                      <p className="text-sm font-semibold text-slate-200 truncate">
                         {prod.title}
                       </p>
-                      <p className="text-xs text-gray-500">₹{prod.price}</p>
+                      <p className="text-xs text-orange-400">₹{prod.price}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="px-4 py-3 text-sm text-gray-500 text-center">
+              <div className="px-4 py-3 text-sm text-slate-400 text-center">
                 No products found
               </div>
             )}
@@ -166,7 +166,7 @@ const Navbar = () => {
       </div>
 
       {/* Right Side */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-5">
 
         {/* Wishlist */}
         <button
@@ -179,15 +179,15 @@ const Navbar = () => {
               navigate("/wishlist");
             }
           }}
-          className={`group flex items-center justify-center gap-2 
+          className={`group flex items-center justify-center gap-2.5 
           ${
             isWishlistPage
-              ? "bg-[#3d566e]"
-              : "bg-[#34495E]"
+              ? "bg-[#1e293b] border-orange-500/35 text-orange-400"
+              : "bg-[#1e293b]/40 border-slate-800/70 text-slate-300"
           }
-          hover:bg-[#3d566e] text-white px-4 py-2 rounded-lg 
-          font-semibold transition duration-300 hover:scale-105 
-          border border-gray-600/35 cursor-pointer`}
+          hover:bg-[#1e293b] hover:text-white px-4 py-2 rounded-xl border
+          font-semibold transition-all duration-300 hover:scale-[1.02] 
+          cursor-pointer shadow-sm shadow-black/10`}
         >
           <span>Wishlist</span>
 
@@ -227,8 +227,11 @@ const Navbar = () => {
               navigate("/cart");
             }
           }}
-          className="bg-orange-500 text-white px-4 py-2 rounded-lg 
-          font-semibold transition duration-300 hover:scale-105"
+          className="bg-gradient-to-r from-orange-500 to-orange-600 
+          hover:from-orange-400 hover:to-orange-500 
+          text-white px-4 py-2 rounded-xl font-bold 
+          transition-all duration-300 hover:scale-[1.02] 
+          shadow-lg shadow-orange-500/10 border border-orange-400/20 cursor-pointer"
         >
           Cart : {cartCount}
         </button>
@@ -244,13 +247,15 @@ const Navbar = () => {
               navigate("/orders");
             }
           }}
-          className={`${
+          className={`flex items-center justify-center gap-2
+          ${
             isOrdersPage
-              ? "bg-[#3d566e]"
-              : "bg-[#34495E]"
+              ? "bg-[#1e293b] border-orange-500/35 text-orange-400"
+              : "bg-[#1e293b]/40 border-slate-800/70 text-slate-300"
           }
-          hover:bg-[#3d566e] text-white px-4 py-2 rounded-lg 
-          font-semibold transition duration-300 hover:scale-105`}
+          hover:bg-[#1e293b] hover:text-white px-4 py-2 rounded-xl border
+          font-semibold transition-all duration-300 hover:scale-[1.02]
+          cursor-pointer shadow-sm shadow-black/10`}
         >
           Orders
         </button>
@@ -262,24 +267,24 @@ const Navbar = () => {
             <>
               <button
                 onClick={() => setOpen(!open)}
-                className="bg-[#34495E] hover:bg-[#3d566e] 
-                text-white px-4 py-2 rounded-lg font-semibold 
-                transition duration-300"
+                className="bg-[#1e293b]/50 hover:bg-[#1e293b] border border-slate-800/70
+                text-white px-4 py-2 rounded-xl font-semibold 
+                transition duration-300 shadow-sm hover:scale-[1.02] cursor-pointer"
               >
                 👤 {user.name}
               </button>
 
               {open && (
-                <div className="absolute right-0 mt-2 w-56 bg-white 
-                rounded-lg shadow-xl overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-56 bg-slate-900 
+                rounded-xl shadow-xl overflow-hidden z-50 border border-slate-850">
 
-                  <div className="px-4 py-3 border-b">
+                  <div className="px-4 py-3 border-b border-slate-800">
 
-                    <p className="font-bold text-gray-800">
+                    <p className="font-bold text-slate-200">
                       {user.name}
                     </p>
 
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-400">
                       {user.email}
                     </p>
 
@@ -288,7 +293,7 @@ const Navbar = () => {
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-3 
-                    hover:bg-gray-100 text-red-600"
+                    hover:bg-slate-800 text-red-400 transition duration-150"
                   >
                     Sign Out
                   </button>
@@ -299,9 +304,11 @@ const Navbar = () => {
           ) : (
             <button
               onClick={() => navigate("/signin")}
-              className="bg-[#34495E] hover:bg-[#3d566e] 
-              text-white px-4 py-2 rounded-lg font-semibold 
-              transition duration-300"
+              className="bg-gradient-to-r from-orange-500 to-orange-600 
+              hover:from-orange-400 hover:to-orange-500 
+              text-white px-5 py-2 rounded-xl font-bold 
+              shadow-lg shadow-orange-500/40 hover:shadow-orange-500/20 
+              transition-all duration-300 hover:scale-[1.02] cursor-pointer"
             >
               Sign In
             </button>
