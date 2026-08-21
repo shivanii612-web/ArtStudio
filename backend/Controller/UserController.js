@@ -1,16 +1,16 @@
 "use strict";
 
-const UserModel       = require("../Model/Usermodel");
+const UserModel        = require("../Model/Usermodel");
 const PendingUserModel = require("../Model/PendingUserModel");
-const bcrypt          = require("bcryptjs");
-const jwt             = require("jsonwebtoken");
-const { redisClient } = require("../Config/redis");
-const crypto          = require("crypto");
-const nodemailer      = require("nodemailer");
-const { getTransporter } = require("../Config/nodemailer");
+const bcrypt           = require("bcryptjs");
+const jwt              = require("jsonwebtoken");
+const { redisClient }  = require("../Config/redis");
+const crypto           = require("crypto");
+const transporter      = require("../Config/nodemailer");
 
 // ---------------------------------------------------------------------------
 // Helper — send the OTP verification email
+// Throws on any Nodemailer / SMTP error — callers must catch and return 500.
 // ---------------------------------------------------------------------------
 const sendVerificationEmail = async (email, name, otp) => {
   const frontendUrl = (
@@ -24,27 +24,32 @@ const sendVerificationEmail = async (email, name, otp) => {
   const mailOptions = {
     from: `"ArtStudio" <${(process.env.EMAIL_USER || "").trim()}>`,
     to: email,
-    subject: "Welcome to ArtStudio — verify your email address",
+    subject: "ArtStudio — your email verification code",
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:auto;padding:20px;
                   border:1px solid #eee;border-radius:10px;">
         <h2 style="color:#f97316;text-align:center;font-family:serif;">ArtStudio</h2>
         <hr style="border:0;border-top:1px solid #eee;"/>
-        <p>Welcome to ArtStudio, ${name}!</p>
-        <p>Please verify your email address to activate your account.</p>
-        <div style="text-align:center;margin:20px 0;">
-          <p style="font-size:16px;font-weight:bold;color:#333;">Your Verification Code:</p>
-          <p style="font-size:32px;font-weight:bold;color:#f97316;
-                    letter-spacing:5px;margin:10px 0;">${otp}</p>
+        <p>Hi ${name},</p>
+        <p>Please verify your email address to activate your ArtStudio account.</p>
+        <div style="text-align:center;margin:24px 0;">
+          <p style="font-size:15px;font-weight:bold;color:#333;margin-bottom:8px;">
+            Your 6-digit verification code:
+          </p>
+          <p style="font-size:36px;font-weight:bold;color:#f97316;
+                    letter-spacing:8px;margin:0;">${otp}</p>
+          <p style="font-size:12px;color:#888;margin-top:8px;">
+            This code expires in 15 minutes.
+          </p>
         </div>
-        <div style="text-align:center;margin:30px 0;">
+        <div style="text-align:center;margin:24px 0;">
           <a href="${verificationUrl}"
-             style="background-color:#f97316;color:white;padding:12px 24px;
+             style="background-color:#f97316;color:#fff;padding:12px 28px;
                     text-decoration:none;border-radius:8px;font-weight:bold;
                     display:inline-block;">Verify Email</a>
         </div>
         <p style="font-size:12px;color:#666;">
-          If the button does not work, copy and paste this link into your browser:
+          Or paste this link in your browser:
         </p>
         <p style="font-size:12px;color:#666;word-break:break-all;">
           <a href="${verificationUrl}">${verificationUrl}</a>
@@ -53,22 +58,13 @@ const sendVerificationEmail = async (email, name, otp) => {
     `,
   };
 
-  console.log(`[Email] Sending OTP to: ${email}`);
+  console.log(`[Email] Attempting to send verification email to: ${email}`);
 
-  const transporter = await getTransporter();
+  // sendMail() will throw if Gmail rejects the message (EAUTH, ECONNECTION, etc.)
+  // The caller must NOT swallow this error.
   const info = await transporter.sendMail(mailOptions);
 
-  console.log(`[Email] OTP sent. MessageId: ${info.messageId}`);
-
-  // When using the Ethereal fallback print the preview URL so you can inspect the email
-  if (transporter._isEthereal) {
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    console.log("=========================================================");
-    console.log("[Ethereal] OTP EMAIL PREVIEW URL:");
-    console.log(" ", previewUrl);
-    console.log(" Open this URL in your browser to see the OTP email.");
-    console.log("=========================================================");
-  }
+  console.log(`[Email] Verification email sent successfully. MessageId: ${info.messageId}`);
 };
 
 // ---------------------------------------------------------------------------
