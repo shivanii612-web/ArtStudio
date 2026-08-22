@@ -30,13 +30,13 @@ function post(path, body) {
 async function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function poll() {
-  const MAX = 24;
+  const MAX = 40;
   for (let i = 1; i <= MAX; i++) {
     const now = new Date().toLocaleTimeString();
     console.log(`\n[Attempt ${i}/${MAX}] ${now}`);
 
     const health = await get("/health");
-    if (health.status === 200 && health.body && health.body.version === "2026-08-22-admin-auth") {
+    if (health.status === 200 && health.body && health.body.version === "2026-08-22-smtp-ipv4-fixed") {
       console.log("✓ NEW CODE DETECTED via /health:", JSON.stringify(health.body));
 
       // Now test OTP routes
