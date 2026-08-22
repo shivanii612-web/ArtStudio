@@ -85,12 +85,12 @@ const loginUser = async (req, res) => {
     const user = await UserModel.findOne({ email: normalizedEmail });
 
     if (!user) {
-      return res.status(400).json({ success: false, message: "User not found." });
+      return res.status(404).json({ success: false, message: "User not found. Please sign up." });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(400).json({ success: false, message: "Invalid password." });
+      return res.status(401).json({ success: false, message: "Incorrect password." });
     }
 
     const token = jwt.sign(
