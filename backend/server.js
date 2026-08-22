@@ -35,8 +35,8 @@ app.use(bodyParser.json());
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    version: "2026-08-22-resend-final-http",
-    routes: ["forgot-password", "verify-email", "register-otp", "admin-protected-update"]
+    version: "2026-08-22-simplified-auth-no-verification",
+    routes: ["admin-protected-update"]
   });
 });
 
