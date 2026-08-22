@@ -172,8 +172,8 @@ const displayedProducts = products.filter((prod) => {
     <div>
 <Navbar cartCount={cartCount}/>
 
-<div className="relative">
-<img src={heroImg} alt="Hero Banner" className="w-full h-[300px] sm:h-[500px] object-cover object-center"/>
+<div className="relative overflow-hidden h-[260px] sm:h-[500px]">
+<img src={heroImg} alt="Hero Banner" className="w-full h-[300px] sm:h-[500px] object-cover object-center -mt-10 sm:mt-0"/>
 
 <div className="absolute top-1/2 left-6 sm:left-16 -translate-y-1/2 text-white drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)] max-w-[85%] sm:max-w-none">
 <h1 className="text-3xl sm:text-5xl font-bold">Unleash Your Creativity</h1>

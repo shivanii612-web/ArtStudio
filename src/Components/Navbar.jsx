@@ -166,7 +166,7 @@ const Navbar = () => {
       </div>
 
       {/* Right Side */}
-      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 w-full lg:w-auto">
+      <div className="flex flex-nowrap items-center justify-center gap-1.5 sm:gap-5 w-full lg:w-auto">
 
         {/* Wishlist */}
         <button
@@ -179,22 +179,22 @@ const Navbar = () => {
               navigate("/wishlist");
             }
           }}
-          className={`group flex items-center justify-center gap-2.5 
+          className={`group flex items-center justify-center gap-1 sm:gap-2.5 
           ${
             isWishlistPage
               ? "bg-[#1e293b] border-orange-500/35 text-orange-400"
               : "bg-[#1e293b]/40 border-slate-800/70 text-slate-300"
           }
-          hover:bg-[#1e293b] hover:text-white px-4 py-2 rounded-xl border
-          font-semibold transition-all duration-300 hover:scale-[1.02] 
+          hover:bg-[#1e293b] hover:text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl border
+          text-xs sm:text-base font-semibold transition-all duration-300 hover:scale-[1.02] 
           cursor-pointer shadow-sm shadow-black/10`}
         >
           <span>Wishlist</span>
 
-          <span className="relative w-5 h-5 flex items-center justify-center">
+          <span className="relative w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
 
             <span
-              className={`absolute transition-all duration-300 text-xl ${
+              className={`absolute transition-all duration-300 text-sm sm:text-xl ${
                 isWishlistPage
                   ? "opacity-0 scale-0"
                   : "opacity-100 scale-100 group-hover:opacity-0 group-hover:scale-0 text-[#FF6B6B]"
@@ -204,7 +204,7 @@ const Navbar = () => {
             </span>
 
             <span
-              className={`absolute transition-all duration-300 text-xl ${
+              className={`absolute transition-all duration-300 text-sm sm:text-xl ${
                 isWishlistPage
                   ? "opacity-100 scale-100 text-red-600"
                   : "opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-125 text-red-600"
@@ -229,7 +229,7 @@ const Navbar = () => {
           }}
           className="bg-gradient-to-r from-orange-500 to-orange-600 
           hover:from-orange-400 hover:to-orange-500 
-          text-white px-4 py-2 rounded-xl font-bold 
+          text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold 
           transition-all duration-300 hover:scale-[1.02] 
           shadow-lg shadow-orange-500/10 border border-orange-400/20 cursor-pointer"
         >
@@ -247,14 +247,14 @@ const Navbar = () => {
               navigate("/orders");
             }
           }}
-          className={`flex items-center justify-center gap-2
+          className={`flex items-center justify-center gap-1 sm:gap-2
           ${
             isOrdersPage
               ? "bg-[#1e293b] border-orange-500/35 text-orange-400"
               : "bg-[#1e293b]/40 border-slate-800/70 text-slate-300"
           }
-          hover:bg-[#1e293b] hover:text-white px-4 py-2 rounded-xl border
-          font-semibold transition-all duration-300 hover:scale-[1.02]
+          hover:bg-[#1e293b] hover:text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl border
+          text-xs sm:text-base font-semibold transition-all duration-300 hover:scale-[1.02]
           cursor-pointer shadow-sm shadow-black/10`}
         >
           Orders
@@ -268,10 +268,10 @@ const Navbar = () => {
               <button
                 onClick={() => setOpen(!open)}
                 className="bg-[#1e293b]/50 hover:bg-[#1e293b] border border-slate-800/70
-                text-white px-4 py-2 rounded-xl font-semibold 
-                transition duration-300 shadow-sm hover:scale-[1.02] cursor-pointer"
+                text-white px-2 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-base font-semibold 
+                transition duration-300 shadow-sm hover:scale-[1.02] cursor-pointer flex items-center gap-1 max-w-[100px] sm:max-w-none"
               >
-                👤 {user.name}
+                <span className="truncate">👤 {user.name}</span>
               </button>
 
               {open && (
@@ -306,7 +306,7 @@ const Navbar = () => {
               onClick={() => navigate("/signin")}
               className="bg-gradient-to-r from-orange-500 to-orange-600 
               hover:from-orange-400 hover:to-orange-500 
-              text-white px-5 py-2 rounded-xl font-bold 
+              text-white px-2.5 py-1.5 sm:px-5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold 
               shadow-lg shadow-orange-500/40 hover:shadow-orange-500/20 
               transition-all duration-300 hover:scale-[1.02] cursor-pointer"
             >
