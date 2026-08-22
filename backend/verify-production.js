@@ -36,7 +36,7 @@ async function poll() {
     console.log(`\n[Attempt ${i}/${MAX}] ${now}`);
 
     const health = await get("/health");
-    if (health.status === 200 && health.body && health.body.version === "2026-08-22-smtp-ipv4-dns-resolver") {
+    if (health.status === 200 && health.body && health.body.version === "2026-08-22-smtp-diagnostics-db") {
       console.log("✓ NEW CODE DETECTED via /health:", JSON.stringify(health.body));
 
       // Now test OTP routes
