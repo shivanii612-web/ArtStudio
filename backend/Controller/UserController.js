@@ -117,7 +117,7 @@ const registerUser = async (req, res) => {
           name,
           email: normalizedEmail,
           password: hashedPassword,
-          role: role || "user",
+          role: "user",
           otp,
           otpExpires,
         },
@@ -355,16 +355,31 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
-    if (name)     user.name = name;
-    if (role)     user.role = role;
-    if (email)    user.email = email.trim().toLowerCase();
-    if (password) user.password = await bcrypt.hash(password, 10);
+    if (name) user.name = name;
+    if (role) user.role = role;
+
+    if (email) {
+      const normalizedEmail = email.trim().toLowerCase();
+      const existingUser = await UserModel.findOne({ email: normalizedEmail });
+      if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+        return res.status(400).json({ success: false, message: "Email already registered." });
+      }
+      user.email = normalizedEmail;
+    }
+
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    // Keep emailVerified true
+    user.emailVerified = true;
 
     const updated  = await user.save();
     const userData = updated.toObject();
     delete userData.password;
 
-    await redisClient.setEx(`user:${updated._id}`, 300, JSON.stringify(userData));
+    // Clear/invalidate Redis cache for that user
+    await redisClient.del(`user:${updated._id}`);
 
     return res.status(200).json({ success: true, message: "User updated.", updatedUser: userData });
   } catch (err) {
@@ -467,19 +482,29 @@ const googleLogin = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid Google token audience." });
     }
 
-    let user = await UserModel.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+    console.log("[GoogleLogin] Normalizing and looking up email:", normalizedEmail);
+
+    let user = await UserModel.findOne({ email: normalizedEmail });
     if (!user) {
-      const hashedPassword = await bcrypt.hash(
-        Math.random().toString(36).slice(-12),
-        10
-      );
+      const randomPassword = crypto.randomBytes(16).toString("hex");
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
       user = await UserModel.create({
         name,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         role: "user",
         emailVerified: true,
       });
+      console.log("[GoogleLogin] Created new Google account for:", normalizedEmail);
+    } else {
+      console.log("[GoogleLogin] Reusing existing account. Role:", user.role);
+      // Ensure existing user gets verified flag updated if not already set
+      if (!user.emailVerified) {
+        user.emailVerified = true;
+        await user.save();
+        console.log("[GoogleLogin] Marked existing account as emailVerified.");
+      }
     }
 
     const token = jwt.sign(
