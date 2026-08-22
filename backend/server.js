@@ -35,7 +35,7 @@ app.use(bodyParser.json());
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    version: "2026-08-22-admin-auth",
+    version: "2026-08-22-smtp-port-587",
     routes: ["forgot-password", "verify-email", "register-otp", "admin-protected-update"]
   });
 });
