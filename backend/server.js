@@ -35,7 +35,7 @@ app.use(bodyParser.json());
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    version: "2026-08-22-smtp-ipv4-fixed",
+    version: "2026-08-22-smtp-service-gmail",
     routes: ["forgot-password", "verify-email", "register-otp", "admin-protected-update"]
   });
 });
