@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { logoutCart } from "../features/cart/Cartslice";
 import { logoutWishlist } from "../features/wishlist/Wishlistslice";
 import axios from "axios";
-import { FiHome } from "react-icons/fi";
+import { FaHome } from "react-icons/fa";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -174,10 +174,10 @@ const Navbar = () => {
         {!isHomePage && (
           <button
             onClick={() => navigate("/")}
-            className="flex items-center justify-center bg-[#1e293b]/40 border-slate-800/70 hover:bg-[#1e293b] w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl border text-slate-400 hover:text-orange-500 transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-sm shadow-black/10 shrink-0"
+            className="group flex items-center justify-center bg-[#1e293b]/40 border-slate-800/70 hover:bg-[#1e293b] w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl border transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-sm shadow-black/10 shrink-0"
             title="Home"
           >
-            <FiHome className="text-base sm:text-xl" />
+            <FaHome className="text-orange-500 text-base sm:text-xl group-hover:scale-110 transition duration-300" />
           </button>
         )}
 
