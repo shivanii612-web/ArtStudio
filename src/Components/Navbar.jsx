@@ -168,16 +168,16 @@ const Navbar = () => {
       </div>
 
       {/* Right Side */}
-      <div className="flex flex-nowrap items-center justify-center gap-1.5 sm:gap-5 w-full lg:w-auto">
+      <div className="flex flex-nowrap items-center justify-center gap-1.5 sm:gap-3 w-full lg:w-auto">
 
         {/* Home Icon Only (Visible only on internal pages) */}
         {!isHomePage && (
           <button
             onClick={() => navigate("/")}
-            className="group flex items-center justify-center bg-[#1e293b]/40 border-slate-800/70 hover:bg-[#1e293b] w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl border transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-sm shadow-black/10 shrink-0"
+            className="group flex items-center justify-center bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl border border-orange-400/20 text-white transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-sm shadow-black/10 shrink-0"
             title="Home"
           >
-            <FaHome className="text-orange-500 text-base sm:text-xl group-hover:scale-110 transition duration-300" />
+            <FaHome className="text-base sm:text-xl group-hover:scale-110 transition duration-300" />
           </button>
         )}
 
