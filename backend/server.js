@@ -35,7 +35,7 @@ app.use(bodyParser.json());
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    version: "2026-08-22-smtp-diagnostics-db",
+    version: "2026-08-22-resend-migration",
     routes: ["forgot-password", "verify-email", "register-otp", "admin-protected-update"]
   });
 });
