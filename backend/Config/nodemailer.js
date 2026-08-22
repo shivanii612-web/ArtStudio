@@ -38,13 +38,12 @@ const emailPass = (process.env.EMAIL_PASS || "")
 // ── Build the Gmail transporter ───────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Port 465 is secure
+  port: 587,
+  secure: false, // Port 587 uses STARTTLS
   auth: {
     user: emailUser,
     pass: emailPass,
   },
-  tls: { rejectUnauthorized: false },
   connectionTimeout: 10000,
   greetingTimeout:   10000,
   socketTimeout:     15000,
@@ -56,7 +55,7 @@ transporter.verify((error, success) => {
   if (error) {
     console.error("Email transporter verification failed:", error.message);
   } else {
-    console.log("Email transporter is ready");
+    console.log("[Nodemailer] Email transporter is ready");
   }
 });
 
