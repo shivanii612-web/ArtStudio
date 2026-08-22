@@ -26,6 +26,8 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
 const nodemailer = require("nodemailer");
 
+const dns = require("dns");
+
 // Read and sanitise credentials — never log the password value
 const emailUser = (process.env.EMAIL_USER || "")
   .trim()
@@ -40,7 +42,16 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false, // Port 587 uses STARTTLS
-  family: 4,     // Force IPv4 to bypass Render's unreachable IPv6 routes
+  requireTLS: true,
+  lookup: (hostname, options, callback) => {
+    // Force IPv4 by resolving hostname directly to A (IPv4) records
+    dns.resolve4(hostname, (err, addresses) => {
+      if (err || !addresses || addresses.length === 0) {
+        return dns.lookup(hostname, options, callback);
+      }
+      callback(null, addresses[0], 4);
+    });
+  },
   auth: {
     user: emailUser,
     pass: emailPass,
