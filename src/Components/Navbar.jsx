@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { logoutCart } from "../features/cart/Cartslice";
 import { logoutWishlist } from "../features/wishlist/Wishlistslice";
 import axios from "axios";
-import { FaHouseChimney } from "react-icons/fa6";
+import { TbHome2 } from "react-icons/tb";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -177,7 +177,7 @@ const Navbar = () => {
             className="group flex items-center justify-center bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl border border-orange-400/20 text-white transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-sm shadow-black/10 shrink-0"
             title="Home"
           >
-            <FaHouseChimney className="text-base sm:text-xl group-hover:scale-110 transition duration-300" />
+            <TbHome2 className="text-lg sm:text-2xl group-hover:scale-110 transition duration-300" strokeWidth={2} />
           </button>
         )}
 
