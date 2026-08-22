@@ -153,19 +153,13 @@ const displayedProducts = products.filter((prod) => {
       return;
     }
 
-    try {
-      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
-      const response = await axios.post(`${BACKEND_URL}/products/reserve/${prod._id}`, { quantity: 1 });
-      if (response.data.success) {
-        dispatch(addtoCart(prod));
-        setProducts((prev) =>
-          prev.map((p) => (p._id === prod._id ? { ...p, quantity: response.data.quantity } : p))
-        );
-        toast.success("Added to Cart!");
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to add to cart");
+    if (prod.quantity <= 0) {
+      toast.error("This product is out of stock.");
+      return;
     }
+
+    dispatch(addtoCart(prod));
+    toast.success("Added to Cart!");
   };
 
   return(

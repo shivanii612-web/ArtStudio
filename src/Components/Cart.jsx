@@ -9,7 +9,6 @@ import {
 } from "../features/cart/Cartslice";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import axios from "axios";
 import { toast } from "react-toastify";
 
 const Cart = () => {
@@ -35,41 +34,17 @@ const Cart = () => {
   const shipping = cart.length > 0 ? 50 : 0;
   const total = subtotal + shipping;
 
-  const handleIncrease = async (item) => {
-    try {
-      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
-      const response = await axios.post(`${BACKEND_URL}/products/reserve/${item._id}`, { quantity: 1 });
-      if (response.data.success) {
-        dispatch(increaseQuantity(item._id));
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to increase quantity");
-    }
+  const handleIncrease = (item) => {
+    dispatch(increaseQuantity(item._id));
   };
 
-  const handleDecrease = async (item) => {
-    try {
-      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
-      const response = await axios.post(`${BACKEND_URL}/products/release/${item._id}`, { quantity: 1 });
-      if (response.data.success) {
-        dispatch(decreaseQuantity(item._id));
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to decrease quantity");
-    }
+  const handleDecrease = (item) => {
+    dispatch(decreaseQuantity(item._id));
   };
 
-  const handleRemove = async (item) => {
-    try {
-      const BACKEND_URL = (import.meta.env.VITE_BACKEND_URL || "https://art-studio-mh42.onrender.com/").replace(/\/$/, "");
-      const response = await axios.post(`${BACKEND_URL}/products/release/${item._id}`, { quantity: item.quantity });
-      if (response.data.success) {
-        dispatch(clearItem(item._id));
-        toast.success("Item removed from cart");
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to remove item");
-    }
+  const handleRemove = (item) => {
+    dispatch(clearItem(item._id));
+    toast.success("Item removed from cart");
   };
 
   return (
