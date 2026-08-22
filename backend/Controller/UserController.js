@@ -16,6 +16,8 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
+    console.log(`[Register] Request received. Name: "${name}", Email: "${email}"`);
+
     // 1. Validate input
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -27,8 +29,11 @@ const registerUser = async (req, res) => {
     const normalizedEmail = email.trim().toLowerCase();
 
     // 2. Check if user already exists
+    const mongoose = require("mongoose");
+    console.log(`[Register] Checking existing user in DB: "${mongoose.connection.name}"`);
     const existingUser = await UserModel.findOne({ email: normalizedEmail });
     if (existingUser) {
+      console.log(`[Register] Email "${normalizedEmail}" is already registered.`);
       return res.status(400).json({
         success: false,
         message: "Email already registered. Please sign in.",
@@ -45,6 +50,7 @@ const registerUser = async (req, res) => {
     }
 
     // 4. Create user in UserModel
+    console.log(`[Register] Saving user to collection "usermodels" in DB: "${mongoose.connection.name}"...`);
     const newUser = await UserModel.create({
       name,
       email: normalizedEmail,
@@ -52,6 +58,8 @@ const registerUser = async (req, res) => {
       role: role || "user",
       emailVerified: true, // Mark verified directly so they can sign in without email verification
     });
+
+    console.log(`[Register] User created successfully. ID: "${newUser._id}", Email: "${newUser.email}"`);
 
     return res.status(201).json({
       success: true,

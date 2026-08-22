@@ -31,11 +31,18 @@ app.use(cors({
 
 app.use(bodyParser.json());
 
+const mongoose = require("mongoose");
+
 // Health check — confirms which code version is running
 app.get("/health", (req, res) => {
   res.json({
     status: "ok",
-    version: "2026-08-22-simplified-auth-no-verification",
+    version: "2026-08-22-simplified-auth-no-verification-diagnostics",
+    database: {
+      connected: mongoose.connection.readyState === 1,
+      name: mongoose.connection.name,
+      host: mongoose.connection.host,
+    },
     routes: ["admin-protected-update"]
   });
 });
