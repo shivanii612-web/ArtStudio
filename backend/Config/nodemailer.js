@@ -51,6 +51,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // ── Startup verification — runs immediately when server starts ────────────────
+// Deploy trigger: 2026-08-22 — forced redeploy to push OTP + forgot-password routes to Render
 transporter.verify((error, success) => {
   if (error) {
     console.error("Email transporter verification failed:", error.message);
