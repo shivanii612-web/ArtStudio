@@ -35,13 +35,10 @@ const SignUp = () => {
         }
       );
 
-      sessionStorage.setItem("signupEmail", email);
-      toast.success(response.data.message || "Verification code sent to your email.");
+      toast.success(response.data.message || "Account created successfully. Please sign in.");
 
       setTimeout(() => {
-        navigate(`/verify-email?email=${encodeURIComponent(email)}&returnTo=${encodeURIComponent(returnTo)}`, {
-          state: { email }
-        });
+        navigate(`/signin?returnTo=${encodeURIComponent(returnTo)}`);
       }, 1500);
 
     } catch (error) {

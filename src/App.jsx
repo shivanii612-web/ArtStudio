@@ -6,8 +6,6 @@ import Wishlist from "./Components/Wishlist";
 
 import SignIn from "./Components/login/Signin";
 import SignUp from "./Components/login/Signup";
-import VerifyEmail from "./Components/login/VerifyEmail";
-import ForgotPassword from "./Components/login/ForgotPassword";
 import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import axios from "axios";
@@ -71,8 +69,6 @@ function App() {
         <Routes>
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route path="/" element={<Product />} />
 
