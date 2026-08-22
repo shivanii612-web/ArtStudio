@@ -1,3 +1,4 @@
+// Deploy trigger: 2026-08-22T15:05 — admin auth + OTP routes + forgot-password
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -29,6 +30,16 @@ app.use(cors({
 }));
 
 app.use(bodyParser.json());
+
+// Health check — confirms which code version is running
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    version: "2026-08-22-admin-auth",
+    routes: ["forgot-password", "verify-email", "register-otp", "admin-protected-update"]
+  });
+});
+
 app.use("/", userRoutes);
 
 app.use("/", productRoutes);
