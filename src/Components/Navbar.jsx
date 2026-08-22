@@ -89,6 +89,7 @@ const Navbar = () => {
 
   const isWishlistPage = location.pathname === "/wishlist";
   const isOrdersPage = location.pathname === "/orders";
+  const isHomePage = location.pathname === "/";
 
   const handleLogout = () => {
     dispatch(logout());
@@ -167,6 +168,17 @@ const Navbar = () => {
 
       {/* Right Side */}
       <div className="flex flex-nowrap items-center justify-center gap-1.5 sm:gap-5 w-full lg:w-auto">
+
+        {/* Home Icon Only (Visible only on internal pages) */}
+        {!isHomePage && (
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center justify-center bg-[#1e293b]/40 border-slate-800/70 hover:bg-[#1e293b] w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl border text-slate-300 hover:text-white transition-all duration-300 hover:scale-[1.02] cursor-pointer shadow-sm shadow-black/10"
+            title="Home"
+          >
+            <span className="text-sm sm:text-lg">🏠</span>
+          </button>
+        )}
 
         {/* Wishlist */}
         <button

@@ -35,6 +35,15 @@ const AdminNavbar = () => {
       {/* Navigation Buttons */}
       <div className="flex flex-wrap gap-4 sm:gap-8 items-center justify-center">
 
+        {/* Home */}
+        <button
+          onClick={() => navigate("/")}
+          className="font-semibold transition duration-200 hover:text-[#F97316] text-gray-300 py-1 flex items-center gap-1"
+        >
+          <span>Home</span>
+          <span className="text-sm">🏠</span>
+        </button>
+
         {/* Products */}
         <button
           onClick={() => navigate("/admin/products")}
