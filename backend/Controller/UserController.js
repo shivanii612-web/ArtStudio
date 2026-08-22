@@ -131,20 +131,6 @@ const registerUser = async (req, res) => {
     } catch (error) {
       console.error("Verification email sending failed:", error.message);
 
-      // Log error to MongoDB Atlas for remote diagnostics
-      try {
-        const mongoose = require("mongoose");
-        await mongoose.connection.collection("smtp_debug").insertOne({
-          context: "registerUser",
-          timestamp: new Date(),
-          error: error.message,
-          stack: error.stack,
-          email: normalizedEmail
-        });
-      } catch (dbErr) {
-        console.error("Failed to log SMTP error to DB:", dbErr.message);
-      }
-
       // Roll back: remove the pending record so the same email can retry cleanly
       await PendingUserModel.deleteOne({ email: normalizedEmail }).catch(() => {});
 
@@ -619,21 +605,6 @@ const forgotPassword = async (req, res) => {
       await sendPasswordResetEmail(normalizedEmail, user.name, otp);
     } catch (mailErr) {
       console.error("[ForgotPassword] Email send error:", mailErr.message);
-
-      // Log error to MongoDB Atlas for remote diagnostics
-      try {
-        const mongoose = require("mongoose");
-        await mongoose.connection.collection("smtp_debug").insertOne({
-          context: "forgotPassword",
-          timestamp: new Date(),
-          error: mailErr.message,
-          stack: mailErr.stack,
-          email: normalizedEmail
-        });
-      } catch (dbErr) {
-        console.error("Failed to log SMTP error to DB:", dbErr.message);
-      }
-
       user.resetPasswordOtp = undefined;
       user.resetPasswordOtpExpires = undefined;
       await user.save();
