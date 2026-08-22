@@ -40,6 +40,7 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false, // Port 587 uses STARTTLS
+  family: 4,     // Force IPv4 to bypass Render's unreachable IPv6 routes
   auth: {
     user: emailUser,
     pass: emailPass,
@@ -54,8 +55,16 @@ const transporter = nodemailer.createTransport({
 transporter.verify((error, success) => {
   if (error) {
     console.error("Email transporter verification failed:", error.message);
+    console.error("[SMTP Diagnoses] EMAIL_USER:", (process.env.EMAIL_USER || "").trim());
+    const pass = (process.env.EMAIL_PASS || "").replace(/\s/g, "").replace(/^["']|["']$/g, "");
+    console.error("[SMTP Diagnoses] EMAIL_PASS length:", pass.length, "(must be 16)");
+    if (pass.length === 0) {
+      console.error("[SMTP Diagnoses] Error: EMAIL_PASS environment variable is missing!");
+    } else if (pass.length !== 16) {
+      console.error("[SMTP Diagnoses] Error: EMAIL_PASS is not a 16-character App Password!");
+    }
   } else {
-    console.log("[Nodemailer] Email transporter is ready");
+    console.log("Email transporter is ready");
   }
 });
 
